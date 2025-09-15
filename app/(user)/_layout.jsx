@@ -3,16 +3,17 @@ import React from 'react';
 import { Platform } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+// import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { MaterialIcons } from '@expo/vector-icons';
 
-export default function TabLayout() {
+export default function userLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    <Tabs
+    <Tabs /*initialRouteName='userSupport'*/     /* need to remove this route later */
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
@@ -27,19 +28,33 @@ export default function TabLayout() {
         }),
       }}>
       <Tabs.Screen
-        name="index"
+        name="userHome"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarIcon: ({ color }) => <MaterialIcons size={28} name="whatshot" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name= "userPersonal"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: 'Personal',
+          tabBarIcon: ({ color }) => <MaterialIcons size={28} name="fitness-center" color={color} />,
+        }}
+        />
+      <Tabs.Screen
+        name="userSupport"
+        options={{
+          title: 'Support Me',
+          tabBarIcon: ({ color }) => <MaterialIcons size={28} name="attach-money" color={color} />,
         }}
       />
+      {/* <Tabs.Screen
+        name = "+not-found"
+        options={{
+          title: "Support",
+          tabBarIcon: ({color}) => <MaterialIcons size={28} name="person" color={color} />
+        }}
+      /> */}
     </Tabs>
   );
 }
