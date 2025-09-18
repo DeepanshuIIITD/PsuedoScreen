@@ -8,7 +8,6 @@
     "scheme": "psuedoscreen",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    // made some changes here 
     "updates": {
       "enabled": true,
       "checkAutomatically": "ON_LOAD"
@@ -21,7 +20,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.deepanshu_aluria.PsuedoScreen"
     },
     "web": {
       "bundler": "metro",
@@ -36,12 +36,18 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#fffffj"
+          "backgroundColor": "#ffffff"
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "b5c75dcf-4cf9-44d3-a1db-44fe72f4ae5f"
+      }
     }
   }
 }

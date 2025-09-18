@@ -15,16 +15,6 @@ const userClassEnrolled = () => {
     }
 
     return (
-    // <View style={styles.container}>
-    //     <Text style={styles.title}>Enroll a Class</Text>
-    // <Link href={"/(user)/userHome"}>
-    //     <Text style={styles.text} > Go to selected class</Text>
-    // </Link>
-    // <Link href={"/userClassRegistration"}>
-    //     <Text style={styles.text} > New Class registration</Text>
-    // </Link>
-
-    // </View>
     <View style={styles.container}>
         <Text style={styles.title}>My Classes</Text>
     
