@@ -3,217 +3,7 @@ import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 
 // import { ScrollView } from 'react-native-gesture-handler';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import RNPickerSelect from 'react-native-picker-select';
-
-
-// const userPersonal = () => {
-
-//   const [isjoined, setJoined] = React.useState(null); // null, true, false
-//   const [todayNote, setTodayNote] = React.useState("");
-//   // const [todayTiming, setTodayTiming] = React.useState("");
-//   const [excuse, setExcuse] = React.useState("");
-//   const [isReportView, setIsReportView] = React.useState(null); // null, monthly, yearly
-
-
-//   // time formating options
-  // const [showTimePicker, setShowTimePicker] = React.useState(false);
-//   const [selectedTime, setSelectedTime] = React.useState(new Date());
-
-//   // Format time as HH:MM
-//   const formatTime = (date) => {
-//     const hours = date.getHours().toString().padStart(2, '0');
-//     const minutes = date.getMinutes().toString().padStart(2, '0');
-//     return `${hours}:${minutes}`;
-//   };
-
-//     const excuseOptions = [
-//   { label: 'Out of station', value: 'Out of station' },
-//   { label: 'Health issue', value: 'Health issue' },
-//   { label: 'Very genuine', value: 'Very genuine' },
-//   { label: 'Excuses', value: 'Excuses' },
-// ];
-
-//   const renderJoinedSummary = () => (
-//   <>
-//     <Text style={styles.cardTitle}>Attendance Summary</Text>
-//       <Text style={styles.summaryText}>You have joined today's class. Great job!</Text>
-//       <TextInput
-//         style={{
-//           ...styles.summaryText,
-//           borderColor: "#d1d5db",
-//           borderWidth: 1,
-//           borderRadius: 8,
-//           padding: 8,
-//           marginTop: 10,
-//         }}
-//         placeholder="Any notes for today?"
-//         value={todayNote}
-//         onChangeText={setTodayNote}
-//         multiline
-//       />
-//       <TouchableOpacity
-//         style={{
-//           ...styles.summaryText,
-//           borderColor: "#d1d5db",
-//           borderWidth: 1,
-//           borderRadius: 8,
-//           padding: 8,
-//           marginTop: 10,
-//         }}
-//         onPress={() => setShowTimePicker(true)}
-//       >
-//         <Text>
-//           {selectedTime ? `Time spent: ${formatTime(selectedTime)}` : "Select time spent"}
-//         </Text>
-//       </TouchableOpacity>
-//       {showTimePicker && (
-//         <DateTimePicker
-//           value={selectedTime}
-//           mode="time"
-//           is24Hour={true}
-//           display="default"
-//           onChange={(event, date) => {
-//             setShowTimePicker(false);
-//             if (date) setSelectedTime(date);
-//           }}
-//         />
-//       )}
-//       <TouchableOpacity
-//         style={{ ...styles.submitButton, width: 120, alignSelf: "center" }}
-//         onPress={() => alert(`Note Submitted: ${todayNote}, Time: ${formatTime(selectedTime)}`)}
-//       >
-//         <Text style={styles.submitText}>Submit</Text>
-//       </TouchableOpacity>
-//     </>
-//   );
-
-// const renderExcuseForm = () => (
-//     <>
-//       <Text style={styles.cardTitle}>Reason for not joining ?</Text>
-//       <RNPickerSelect
-//         onValueChange={setExcuse}
-//         value={excuse}
-//         placeholder={{ label: "Select a reason...", value: null }}
-//         items={excuseOptions}
-//         style={{
-//           inputIOS: {
-//             ...styles.summaryText,
-//             borderColor: "#d1d5db",
-//             borderWidth: 1,
-//             borderRadius: 8,
-//             padding: 8,
-//             marginTop: 10,
-//           },
-//           inputAndroid: {
-//             ...styles.summaryText,
-//             borderColor: "#d1d5db",
-//             borderWidth: 1,
-//             borderRadius: 8,
-//             padding: 8,
-//             marginTop: 10,
-//           },
-//         }}
-//         useNativeAndroidPickerStyle={false}
-//         Icon={() => (
-//           <Text style={{ position: 'absolute', right: 10, top: 18, fontSize: 18 }}>▼</Text>
-//         )}
-//       />
-//       <TouchableOpacity
-//         style={{ ...styles.submitButton, width: 120, alignSelf: "center" }}
-//         onPress={() => alert(`Excuse Submitted: ${excuse}`)}
-//       >
-//         <Text style={styles.submitText}>Submit</Text>
-//       </TouchableOpacity>
-//     </>
-//   );
-
-//   const renderMonthlyReport = () => (
-//     <>
-//       <Text style={styles.cardTitle}>Monthly Report</Text>
-//       <Text style={styles.summaryText}>Total Classes Joined: 20</Text>
-//       <Text style={styles.summaryText}>Total Classes Missed: 5</Text>
-//       <Text style={styles.summaryText}>Best Monthly streak: 14</Text>
-//       <View style={styles.streakHeader}>
-//         <View style={styles.streakIconWrapper}>
-//           <Text style={{ fontSize: 24 }}>🔥</Text>
-//         </View>
-//         <Text style={styles.streakCounter}>Current Streak: 7 days</Text>
-//       </View>
-//     </>
-//   );
-
-//   const renderYearlyReport = () => (
-//     <>
-//       <Text style={styles.cardTitle}>Yearly Report</Text>
-//       <Text style={styles.summaryText}>Total Classes Joined: 200</Text>
-//       <Text style={styles.summaryText}>Total Classes Missed: 50</Text>
-//       <Text style={styles.summaryText}>Best Yearly streak: 156</Text>
-//       <View style={styles.streakHeader}>
-//         <Text style={styles.streakCounter}>Longest Streak: 30 days</Text>
-//         <View style={styles.streakIconWrapper}>
-//           <Text style={{ fontSize: 24 }}>🔥</Text>
-//         </View>
-//       </View>
-//     </>
-//   );
-
-
-
-//   return (
-//     <ScrollView style = {styles.screen}>
-//     {/* <View style={styles.screen}> */}
-//       <Text style={styles.title}> Today's Attendance </Text>
-//       {/* today's class entry */}
-//       <View style={styles.card}>
-//         <Text style={styles.cardTitle}>Class Entry</Text>
-//         <View style={styles.innerBox}>
-//           <Text style = {styles.cardText}>Joined Today's Class ?</Text>
-//           <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
-//             <TouchableOpacity style={styles.yesButton} onPress={() => setJoined(true)}>
-//               <Text style={{ color: "white", fontWeight: "600" }}>Yes, I did!</Text>
-//             </TouchableOpacity>
-//             <TouchableOpacity style={styles.noButton} onPress={() => setJoined(false)}>
-//               <Text style={{ color: "white", fontWeight: "600" }}>No, Missed it</Text>
-//             </TouchableOpacity>
-//           </View>
-//         </View>
-//       </View>
-
-//       {/* is joined render logic */}
-//       {isjoined !== null && (
-//         <View style={styles.card}>
-//           {isjoined ? renderJoinedSummary() : renderExcuseForm()}
-//         </View>
-//       )}
-
-//       <View style={styles.card}>
-//         <Text style={styles.cardTitle}>Report</Text>
-//         <View style={styles.innerBox}>
-//           <View style={{flexDirection: "row", justifyContent: "space-around"}}>
-//             <TouchableOpacity style={styles.reportButton } onPress={() => setIsReportView(true)}>
-//               <Text style={styles.cardText}> Monthly Report</Text>
-//             </TouchableOpacity>
-//             <TouchableOpacity style={styles.reportButton} onPress={() => setIsReportView(false)}>
-//               <Text style={styles.cardText}>Yearly Report</Text>
-//             </TouchableOpacity>
-//           </View>
-//         </View>
-//       </View>
-
-//       {isReportView !== null && (
-//         <View style={styles.card}>
-//           {isReportView ? renderMonthlyReport() : renderYearlyReport()}
-//         </View>
-//       )}
-
-      
-//     {/* </View> */}
-//     </ScrollView>
-//   )
-// }
-
-// export default userPersonal
-
-
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 
 const userPersonal = () => {
@@ -231,6 +21,9 @@ const userPersonal = () => {
     const minutes = date.getMinutes().toString().padStart(2, '0');
     return `${hours}:${minutes}`;
   };
+
+  // for safeareview testing purpose only
+  const insets = useSafeAreaInsets();
 
 
   const pickerStyle = {
@@ -390,6 +183,7 @@ const renderYearlyReport = () => (
 
 
   return (
+    <View style={[styles.safeContainer, {paddingTop:insets.top}]}>
     <ScrollView style={styles.screen}>
       <Text style={styles.title}> Today's Attendance </Text>
 
@@ -470,6 +264,7 @@ const renderYearlyReport = () => (
           </View>
         )}
     </ScrollView>
+    </View>
   );
 };
 
@@ -477,10 +272,14 @@ export default userPersonal;
 
 
 const styles = StyleSheet.create({
+  safeContainer:{
+    flex: 1,
+    backgroundColor: "green",
+  },
   screen: {
     flex: 1,
     backgroundColor: "#f9fafb",
-    padding: 16,
+    // padding: 16,
   },
   title: {
     fontSize: 34,

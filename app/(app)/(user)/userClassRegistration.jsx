@@ -12,7 +12,7 @@ const userClassRegistration = () => {
         alert('Please enter a valid class code');
         return;
       }
-      router.push(`/(user)/userHome`);
+      router.push(`/(user)/userHome`);          // post "/user/enroll/:id"
       alert('Successfully joined the class!');
   }
   

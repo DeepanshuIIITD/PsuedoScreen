@@ -328,7 +328,10 @@
 // });
 
 
+// refresh token /user/refreshToken
 
+
+// after signup will riderect to login page
 
 
 
@@ -398,7 +401,7 @@ const Signup = () => {
     try {
       console.log('Sending OTP to mobile:', mobile);
 
-      const response = await fetch(`${API_URL}/send-otp`, {
+      const response = await fetch(`${API_URL}/send-otp`, {       // "/user/sendOTP"
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -462,7 +465,7 @@ const Signup = () => {
       // First verify OTP with backend
       console.log('Verifying OTP...');
       
-      const otpVerifyResponse = await fetch(`${API_URL}/verify-otp`, {
+      const otpVerifyResponse = await fetch(`${API_URL}/verify-otp`, {  // "/user/verfiyOTP"
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -493,7 +496,7 @@ const Signup = () => {
       };
       console.log('Signup data:', signupData);
       
-      const response = await fetch(`${API_URL}/signup`, {
+      const response = await fetch(`${API_URL}/signup`, {           // "/user/signUp" // "/admin/signUp"
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -538,12 +541,12 @@ const onDateChange = (event, date) => {
   <KeyboardAvoidingView
     style={{flex:1}}
     behavior={Platform.OS === "ios" ? "padding" : "height"}
-    keyboardVerticalOffset={60}
+    keyboardVerticalOffset={1000} // need to adjust this later
   >
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
         {/* Header role selector */}
-        <View style={styles.headerBar}>
+        <View style={[styles.headerBar , {marginTop: 50} ]}>
           <Pressable
             style={[
               styles.selector,
@@ -684,6 +687,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: 20,
     backgroundColor: "#f9f9f9",
+    marginTop: 100,
   },
   container: {
     flex: 1,
@@ -809,8 +813,8 @@ const styles = StyleSheet.create({
   marginBottom: 15,
   justifyContent: 'center',
 },
-datePickerText: {
-  fontSize: 14,
-  color: dateOfBirth ? '#000' : '#999',
-},
+// datePickerText: {
+//   fontSize: 14,
+//   color: dateOfBirth ? '#000' : '#999',
+// },
 });

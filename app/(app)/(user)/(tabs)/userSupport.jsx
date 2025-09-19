@@ -196,56 +196,68 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
 import { Image, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const userSupport = () => {
   const handleUPIClick = () => {
     // Later you can add deep-linking for UPI apps
-    Linking.openURL("upi://pay?pa=8888888888@paytm&pn=Deepanshu&mc=1234");
+    Linking.openURL("upi://pay?pa=9999999999@paytm&pn=Deepanshu&mc=1234");
   };
+  const insets = useSafeAreaInsets();
 
   return (
-    <ScrollView style={styles.screen}>
-      {/* Header */}
-      <Text style={styles.title}>💙 Support This App</Text>
-      <Text style={styles.subTitle}>
-        Thank you for using this application. Your support helps keep it free,
-        ad-free, and bug-free.
-      </Text>
-
-      {/* Why Support Card */}
-      <View style={styles.card}>
-        <MaterialCommunityIcons name="hand-heart" size={32} color="#2563eb" />
-        <Text style={styles.cardTitle}>Why Support?</Text>
-        <Text style={styles.cardText}>
-          This app is hosted on servers that cost money. A small contribution
-          from each user helps me keep it running smoothly for everyone.
+    <View style={[styles.safeContainer, {paddingTop: insets.top}]}>
+      <ScrollView style={styles.screen}
+        contentContainerStyle={{paddingBottom: 40}}
+      >
+        {/* Header */}
+        <Text style={styles.title}>💙 Support This App</Text>
+        <Text style={styles.subTitle}>
+          Thank you for using this application. Your support helps keep it free,
+          ad-free, and bug-free.
         </Text>
-      </View>
 
-      {/* QR + UPI Section */}
-      <View style={styles.cardCenter}>
-        <Text style={styles.cardTitle}>Contribute via UPI</Text>
-        <Image
-          style={styles.image}
-          source={require("@/assets/images/LinkedIn_Qr.png")}
-        />
-        <TouchableOpacity style={styles.upiBox} onPress={handleUPIClick}>
-          <MaterialCommunityIcons name="qrcode-scan" size={20} color="#111827" />
-          <Text style={styles.upiText}>8888888888@paytm</Text>
-        </TouchableOpacity>
-      </View>
+        {/* Why Support Card */}
+        <View style={styles.card}>
+          <MaterialCommunityIcons name="hand-heart" size={32} color="#2563eb" />
+          <Text style={styles.cardTitle}>Why Support?</Text>
+          <Text style={styles.cardText}>
+            This app is hosted on servers that cost money. A small contribution
+            from each user helps me keep it running smoothly for everyone.
+          </Text>
+        </View>
 
-      {/* Thank You */}
-      <Text style={styles.footerText}>
-        🙏 Every little contribution means a lot. Thank you!
-      </Text>
-    </ScrollView>
+        {/* QR + UPI Section */}
+        <View style={styles.cardCenter}>
+          <Text style={styles.cardTitle}>Contribute via UPI</Text>
+          <Image
+            style={styles.image}
+            source={require("@/assets/images/LinkedIn_Qr.png")}
+          />
+          <TouchableOpacity style={styles.upiBox} onPress={handleUPIClick}>
+            <MaterialCommunityIcons name="qrcode-scan" size={20} color="#111827" />
+            <Text style={styles.upiText}>8888888888@paytm</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Thank You */}
+        
+          <Text style={styles.footerText}>
+            🙏 Every little contribution means a lot. Thank you!
+          </Text>
+        
+      </ScrollView>
+    </View>
   );
 };
 
 export default userSupport;
 
 const styles = StyleSheet.create({
+  safeContainer:{
+    flex: 1,
+    backgroundColor: "green",
+  },
   screen: {
     flex: 1,
     backgroundColor: "#f9fafb",
@@ -326,6 +338,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#6b7280",
     textAlign: "center",
-    marginTop: 10,
+    // marginBottom: 50,
   },
 });

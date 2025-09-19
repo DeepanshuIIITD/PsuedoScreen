@@ -169,10 +169,16 @@
 
 // })
 
+
+      // quick summary /user/myClasses/:id, token header=bearer walah
+      //  
+
+
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as Animatable from 'react-native-animatable';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Status codes for clarity
 // 0 = Absent, 1 = Present, 2 = Other
@@ -201,6 +207,8 @@ const months = [
 const UserHome = () => {
   const [firstName] = useState("Deepanshu");
   const [attendanceData, setAttendanceData] = useState({}); 
+  // for safeareview testing purpose only
+  const insets = useSafeAreaInsets();
 
   const year = 2025;
   const startDate = new Date(year, 0, 1);
@@ -326,8 +334,13 @@ const getPercentages = (summary) => {
     Alert.alert(`Date: ${key}`, message);
   };
 
+  
+  
+
   return (
-    <ScrollView style={styles.screen}>
+    <View style={[styles.safeContainer, {paddingTop:insets.top}]}>
+    <ScrollView style={[styles.screen]}>
+      
       <Text style={styles.title}>👋 Hi, {firstName}!</Text>
 
       {/* Welcome Box */}
@@ -444,16 +457,21 @@ const getPercentages = (summary) => {
         </ScrollView>
       </View>
     </ScrollView>
+    </View>
+    
   );
 };
 
 export default UserHome;
 
 const styles = StyleSheet.create({
+  safeContainer:{
+    flex: 1,
+    backgroundColor: "green",
+  },
   screen: {
     flex: 1,
     backgroundColor: "#f9fafb",
-    padding: 16,
   },
   title: {
     fontSize: 34,
