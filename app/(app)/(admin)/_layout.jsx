@@ -9,11 +9,12 @@ export default function AdminLayout() {
         return <Redirect href="/(auth)" />;
     }
 
+    // remove the inline comment on tabs which was giving warning
     return (
         <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="class-selector" />
-            <Stack.Screen name="class-registration" />
-            <Stack.Screen name="(tabs)" /> {/* Your tab navigation */}
+            <Stack.Screen name="adminClassSelector" />
+            <Stack.Screen name="adminClassRegistration" />
+            <Stack.Screen name="(tabs)" />
         </Stack>
     );
 }

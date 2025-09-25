@@ -80,18 +80,22 @@ function RootLayoutNav() {
     const inAuthGroup = segments[0] === '(auth)';
     const inAppGroup = segments[0] === '(app)';
 
+  // checking  
+  console.log("Auth Layout file se ", user);
+
+
     if (!user && !inAuthGroup) {
       // Redirect to sign-in
       router.replace('/(auth)');
     } else if (user && !inAppGroup) {
       // Redirect to appropriate role home
       if (user.role === 'admin') {
-        router.replace('/(app)/(admin)/adminClassSelector');
+        router.replace('adminClassSelector');
       } else {
-        router.replace('/(app)/(user)/userClassEnrolled');
+        router.replace('/userClassEnrolled');
       }
     }
-  }, [user, segments, isLoading]);
+  }, [user, isLoading]);  // removed segments from here 
 
   if (isLoading) {
     return <Splash />;               //<LoadingScreen />; // Create a loading component

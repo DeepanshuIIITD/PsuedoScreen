@@ -11,8 +11,8 @@ export default function UserLayout() {
 
     return (
         <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="class-enrolled" />
-        <Stack.Screen name="class-registration" />
+        <Stack.Screen name="userClassEnrolled" />
+        <Stack.Screen name="userClassRegistration" />
         <Stack.Screen name="(tabs)" /> {/* Your tab navigation */}
         </Stack>
     );

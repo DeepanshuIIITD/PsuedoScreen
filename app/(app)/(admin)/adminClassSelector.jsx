@@ -1,16 +1,31 @@
 import { Link, router } from "expo-router";
-import React from "react";
+import React, { useEffect } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useAuth } from "@/app/contexts/AuthContext";
+
 
 const AdminClassSelector = () => {
+  const {apiCall} = useAuth();
+  const API =  "https://streak-app-uxyv.onrender.com";
   const [classes, setClasses] = React.useState([
-    { id: 1, title: "Math 101" },
-    { id: 2, title: "Physics Basics" },
-    { id: 3, title: "History of India" },
+    // { id: 1, title: "Math 101" },
+    // { id: 2, title: "Physics Basics" },
+    // { id: 3, title: "History of India" },
   ]);
 
-  const redirectToClass = (classId) => {
+  useEffect()
+
+  const redirectToClass = async (classId) => {
     // router.push(`/(admin)/adminHome/${classId}`);
+    
+    // get awailabe classes and store that in classes
+    const getClassDetails = await apiCall(`${API}/admin/classList`,{
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    console.log("Class Details are as follows")
+
     router.push(`/(admin)/adminHome`);
   };
 

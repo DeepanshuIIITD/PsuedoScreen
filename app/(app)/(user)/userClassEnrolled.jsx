@@ -1,95 +1,386 @@
-import { Link, router } from 'expo-router';
-import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+// import { Link, router } from 'expo-router';
+// import React from 'react';
+// import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+// import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const userClassEnrolled = () => {
-    const [classes, setClasses] = React.useState([          //get "/user/homepage/:id"
-        { id: 1, title: "Math 101" },
-        { id: 2, title: "Physics Basics" },
-        { id: 3, title: "History of India" },
-    ]);
+// const userClassEnrolled = () => {
+//     const [classes, setClasses] = React.useState([          //get "/user/homepage/:id"
+//         { id: 1, title: "Math 101" },
+//         { id: 2, title: "Physics Basics" },
+//         { id: 3, title: "History of India" },
+//     ]);
+
+//     const redirectToClass = (classId) => {
+//         // router.push(`/(user)/userHome/${classId}`);
+//         router.push(`/(user)/userHome`);
+//     }
+//     const insets = useSafeAreaInsets();
+
+//     return (
+//     <View style={[styles.safeContainer, {paddingTop: insets.top}]}>
+//         <View style={[styles.container]}>
+//             <Text style={styles.title}>My Classes</Text>
+        
+//             <ScrollView contentContainerStyle={styles.scrollContainer}>
+//             {classes.map((item) => (
+//                 <Pressable
+//                 key={item.id}
+//                 style={styles.classCard}
+//                 onPress={() => redirectToClass(item.id)}
+//                 >
+//                 <Text style={styles.classText}>{item.title}</Text>
+//                 </Pressable>
+//             ))}
+//             </ScrollView>
+
+//             {/* Create new class button */}
+//             <Link href={"/userClassRegistration"} style={styles.createClassButton}>
+//                 <Text style={styles.createClassText}> Enroll New Class</Text>
+//             </Link>
+//             </View>
+//         </View>
+//     )
+// }
+
+// export default userClassEnrolled
+
+
+// const styles = StyleSheet.create({
+//     safeContainer:{
+//         flex: 1,
+//         backgroundColor: "green",
+//     },
+//     container: {
+//     flex: 1,
+//     padding: 20,
+//     backgroundColor: "#f9f9f9",
+//     },
+//     title: {
+//     fontSize: 28,
+//     fontWeight: "bold",
+//     color: "#0c0a0a",
+//     marginBottom: 20,
+//     textAlign: "center",
+//     },
+//     scrollContainer: {
+//     flexGrow: 1,
+//     paddingBottom: 20,
+//     },
+//     classCard: {
+//     backgroundColor: "#e0f7fa",
+//     padding: 15,
+//     borderRadius: 8,
+//     marginBottom: 12,
+//     },
+//     classText: {
+//     fontSize: 18,
+//     fontWeight: "600",
+//     color: "#004d40",
+//     },
+//     createClassButton: {
+//     backgroundColor: "#17e95d",
+//     padding: 15,
+//     borderRadius: 8,
+//     alignItems: "center",
+//     justifyContent: "center",
+//     marginTop: 10,
+//     marginBottom: 30,
+//     },
+//     createClassText: {
+//     color: "#fff",
+//     fontSize: 20,
+//     fontWeight: "bold",
+//     },
+
+// })
+
+
+
+
+// import { apiCall } from '@/app/utils/apiHelper';
+import { Link, router } from 'expo-router';
+import React, { useEffect } from 'react';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAuth } from '../../contexts/AuthContext'; // Adjust path as needed
+
+const UserClassEnrolled = () => {
+    const [classes, setClasses] = React.useState([]);
+    const [loading, setLoading] = React.useState(true);
+    const [error, setError] = React.useState(null);
+    const [refreshing, setRefreshing] = React.useState(false);
+    const insets = useSafeAreaInsets();
+    
+    // const authContext = useAuth();
+    // const { user, access_token } = authContext; // Get user and accessToken from auth context\
+    const {apiCall} = useAuth();
+    const API_URL = 'https://streak-app-uxyv.onrender.com';
+
+    const fetchClasses = async () => {
+        try {
+            // setError(null);
+            // const userId = user?.id || user?._id;
+            
+            // if (!userId) {
+            //     console.log("No user ID found, user object:", user);
+            //     throw new Error("User ID not available");
+            // }
+
+            // if (!access_token) {
+            //     console.log("No access token found");
+            //     throw new Error("Access token not available");
+            // }
+
+            // console.log("user id:", userId);
+            // console.log("access token exists:", !!access_token);
+
+            const data = await apiCall(
+                `${API_URL}/user/classList`,
+                { method: 'GET' },
+                authContext
+            );
+
+            
+            // const data = await response.json();
+            console.log('API response data:', data);
+
+            // Handle different response structures
+            let classesData = [];
+            
+            if (Array.isArray(data)) {
+                classesData = data;
+            } else if (data.classes && Array.isArray(data.classes)) {
+                classesData = data.classes;
+            } else if (data.data && Array.isArray(data.data)) {
+                classesData = data.data;
+            } else if (data.courses && Array.isArray(data.courses)) {
+                classesData = data.courses;
+            } else {
+                console.log("Unexpected data structure:", data);
+                // If data structure is unexpected, set empty array
+                classesData = [];
+            }
+            
+            console.log('Processed classes data:', classesData);
+            
+            // Transform the API response to match your expected format
+            const transformedClasses = classesData.map(classItem => ({
+                id: classItem.class_id || classItem.id,
+                title: classItem.class_name || classItem.name || classItem.title || 'Untitled Class',
+                class_code: classItem.class_code || classItem.code,
+                phone: classItem.phone,
+                email: classItem.email,
+                created_at: classItem.created_at,
+                joined_at: classItem.joined_at,
+                created_by_admin_id: classItem.created_by_admin_id
+            }));
+            
+            console.log('Transformed classes:', transformedClasses);
+            setClasses(transformedClasses);
+            
+        } catch (err) {
+            console.error('Error fetching classes:', err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    };
+
+    // useEffect(() => {
+    //     console.log("useEffect triggered");
+    //     console.log("User:", user);
+    //     console.log("Access Token exists:", !!access_token);
+        
+    //     // Always call fetchClasses, even if user or token is missing (to show proper error)
+    //     fetchClasses();
+    // }, [user, access_token]);
+
+    useEffect(() => {
+        if (user && access_token) {
+            fetchClasses();
+        } else {
+            setLoading(false);
+            setError("Please login to view classes");
+        }
+    }, [user, access_token]);
+
+
+    const onRefresh = () => {
+        setRefreshing(true);
+        fetchClasses();
+    };
 
     const redirectToClass = (classId) => {
-        // router.push(`/(user)/userHome/${classId}`);
-        router.push(`/(user)/userHome`);
+        console.log("Redirecting to Class:", classId);
+        router.push(`/(user)/(tabs)/userHome/${classId}`);
+    };
+
+    if (loading) {
+        return (
+            <View style={[styles.safeContainer, { paddingTop: insets.top }]}>
+                <View style={styles.centerContainer}>
+                    <ActivityIndicator size="large" color="#17e95d" />
+                    <Text style={styles.loadingText}>Loading your classes...</Text>
+                </View>
+            </View>
+        );
     }
-    const insets = useSafeAreaInsets();
+
+    if (error) {
+        return (
+            <View style={[styles.safeContainer, { paddingTop: insets.top }]}>
+                <View style={styles.centerContainer}>
+                    <Text style={styles.errorText}>Error: {error}</Text>
+                    <Pressable style={styles.retryButton} onPress={fetchClasses}>
+                        <Text style={styles.retryText}>Try Again</Text>
+                    </Pressable>
+                </View>
+            </View>
+        );
+    }
 
     return (
-    <View style={[styles.safeContainer, {paddingTop: insets.top}]}>
-        <View style={[styles.container]}>
-            <Text style={styles.title}>My Classes</Text>
-        
-            <ScrollView contentContainerStyle={styles.scrollContainer}>
-            {classes.map((item) => (
-                <Pressable
-                key={item.id}
-                style={styles.classCard}
-                onPress={() => redirectToClass(item.id)}
-                >
-                <Text style={styles.classText}>{item.title}</Text>
-                </Pressable>
-            ))}
-            </ScrollView>
+        <View style={[styles.safeContainer, { paddingTop: insets.top }]}>
+            <View style={styles.container}>
+                <Text style={styles.title}>My Classes</Text>
+                
+                {classes.length === 0 ? (
+                    <View style={styles.centerContainer}>
+                        <Text style={styles.noClassesText}>No classes enrolled yet</Text>
+                        <Text style={styles.subText}>Enroll in your first class to get started!</Text>
+                    </View>
+                ) : (
+                    <ScrollView 
+                        contentContainerStyle={styles.scrollContainer}
+                        refreshControl={
+                            <RefreshControl 
+                                refreshing={refreshing} 
+                                onRefresh={onRefresh}
+                                colors={['#17e95d']}
+                            />
+                        }
+                    >
+                        {classes.map((item) => (
+                            <Pressable
+                                key={item.id}
+                                style={styles.classCard}
+                                onPress={() => redirectToClass(item.id)}
+                            >
+                                <Text style={styles.classText}>{item.title}</Text>
+                                {item.class_code && (
+                                    <Text style={styles.classCode}>Code: {item.class_code}</Text>
+                                )}
+                                {item.joined_at && (
+                                    <Text style={styles.joinedDate}>Joined: {new Date(item.joined_at).toLocaleDateString()}</Text>
+                                )}
+                            </Pressable>
+                        ))}
+                    </ScrollView>
+                )}
 
-            {/* Create new class button */}
-            <Link href={"/userClassRegistration"} style={styles.createClassButton}>
-                <Text style={styles.createClassText}> Enroll New Class</Text>
-            </Link>
+                {/* Enroll new class button */}
+                <Link href={"/userClassRegistration"} style={styles.createClassButton}>
+                    <Text style={styles.createClassText}>Enroll New Class</Text>
+                </Link>
             </View>
         </View>
-    )
-}
+    );
+};
 
-export default userClassEnrolled
-
-
+// Add the missing styles
 const styles = StyleSheet.create({
-    safeContainer:{
+    safeContainer: {
         flex: 1,
-        backgroundColor: "green",
+        backgroundColor: '#f5f5f5',
     },
     container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: "#f9f9f9",
+        flex: 1,
+        padding: 16,
+    },
+    centerContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#0c0a0a",
-    marginBottom: 20,
-    textAlign: "center",
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    loadingText: {
+        marginTop: 10,
+        fontSize: 16,
+        color: '#666',
+    },
+    errorText: {
+        fontSize: 16,
+        color: '#e74c3c',
+        textAlign: 'center',
+        marginBottom: 20,
+    },
+    retryButton: {
+        backgroundColor: '#17e95d',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 5,
+    },
+    retryText: {
+        color: 'white',
+        fontWeight: 'bold',
+    },
+    noClassesText: {
+        fontSize: 18,
+        color: '#666',
+        textAlign: 'center',
+        marginBottom: 10,
+    },
+    subText: {
+        fontSize: 14,
+        color: '#999',
+        textAlign: 'center',
     },
     scrollContainer: {
-    flexGrow: 1,
-    paddingBottom: 20,
+        paddingBottom: 20,
     },
     classCard: {
-    backgroundColor: "#e0f7fa",
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 12,
+        backgroundColor: 'white',
+        padding: 16,
+        marginBottom: 12,
+        borderRadius: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
     },
     classText: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#004d40",
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 8,
+    },
+    classCode: {
+        fontSize: 14,
+        color: '#666',
+        marginBottom: 4,
+    },
+    joinedDate: {
+        fontSize: 12,
+        color: '#999',
     },
     createClassButton: {
-    backgroundColor: "#17e95d",
-    padding: 15,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 10,
-    marginBottom: 30,
+        backgroundColor: '#17e95d',
+        padding: 16,
+        borderRadius: 8,
+        alignItems: 'center',
+        marginTop: 20,
     },
     createClassText: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "bold",
+        color: 'white',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
+});
 
-})
+export default UserClassEnrolled;

@@ -4,26 +4,43 @@
 // check phone dynamics and screen layout based on that , home screen button issue
 
 
-import { Link, router } from 'expo-router';
+import { Link } from 'expo-router';
 
-import React from 'react';
+import React, { useContext } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+// importing login element
+import { AuthContext } from '../contexts/AuthContext';
 
 const app = () => {
   // state defining for user and admin login
   const [role, setRole] = React.useState('user'); // 'user', 'admin', or 'guest'
   const [userName, setUserName] = React.useState('');
   const [password, setPassword] = React.useState('');
+  const insets = useSafeAreaInsets();
+
+  // new claude suggestions
+  const [isLoggingIn, setIsLoggingIn] = React.useState(false); // Add this
+
+  // login component
+  // const {login } = useContext(AuthContext);
+
+  const { login, isLoading } = useContext(AuthContext); // Get isLoading
+
+  
 
   // Get your computer's IP address - CHANGE THIS TO YOUR ACTUAL IP
-  const API_URL = 'http://192.168.29.152:5050';
+  // const API_URL = 'http://192.168.29.152:5050';
+  // const {API} = Constants.expoConfig.extra;
+  const API = "https://streak-app-uxyv.onrender.com";
+  // console.log(API);
 
   //testing function
   const testServerConnection = async () => {
     try {
-      console.log('Testing connection to:', API_URL);
+      console.log('Testing connection to:', API);
       
-      const response = await fetch(`${API_URL}/api/health`, {
+      const response = await fetch(`${API}/root/health-check`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -53,55 +70,34 @@ const app = () => {
     }
   };
 
-  // Login function
   const handleLogin = async () => {
-    if (!userName || !password) {
-      alert('Please enter both username and password');
-      return;
+
+    if (isLoggingIn) return; // Prevent multiple calls
+    setIsLoggingIn(true);
+
+    const res = await login(role,userName, password);
+    // console.log(res.role);
+    if(res.success){
+      console.log("Login Successfully");
     }
-
-    try {
-      const response = await fetch(`${API_URL}/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: userName,
-          password: password,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        alert(`Login successful! Welcome ${data.user.username}`);
-        // Navigate based on role
-        // You can add navigation logic here
-        if(role === 'user'){    // post "/user/signIn"  bearer token async storage 
-          router.replace("/(app)/(user)/userClassEnrolled");
-        }
-        if(role === 'admin'){             // "/admin/signIn"
-          router.replace("/(app)/(admin)/adminClassSelector");
-        }
-      } else {
-        alert(`Login failed: ${data.error}`);
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      alert(`Login failed: ${error.message}`);
+    else{
+      alert(res.error);
     }
   };
 
-  const shortcutLink = () => {
-    if(role === "user"){
-      router.push("/(user)");
-    }
-    else if(role ==="admin"){
-      router.push("/(admin)");
-    }
-  };
+  // Show loading screen while auth is being checked
+  if (isLoading) {
+    return (
+      <View style={[styles.safeContainer, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
+  
+
+
   return (
+    <View style={[styles.safeContainer, {paddingTop: insets.top}]}>
     <View style = {styles.container}>
       <View style= {{width: '100%', alignItems: 'center', marginBottom: 20}}>
         <TouchableOpacity style = {[styles.selector, {backgroundColor: role ==='user' ? '#51e6ebff' : '#fff'}]} onPress={() => setRole('user')}>
@@ -128,9 +124,9 @@ const app = () => {
         </View>
 
       {/* Login Button */}
-      <Pressable style={styles.loginButton} onPress={handleLogin}>
+      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
         <Text style={styles.loginButtonText}>Login</Text>
-      </Pressable>
+      </TouchableOpacity>
 
       <Link href = "/(auth)/signup">
         <Text style = {styles.link}> New Registration ? Sign up</Text>
@@ -144,11 +140,7 @@ const app = () => {
       >
         <Text style={styles.testButtonText}>Test Server Connection</Text>
       </Pressable>
-
-      <TouchableOpacity style={styles.testButton} onPress={shortcutLink}>
-        <Text style={styles.testButtonText}>Shortcut Button</Text>
-      </TouchableOpacity>
-
+    </View>
     </View>
   )
 }
@@ -156,6 +148,10 @@ const app = () => {
 export default app
 
 const styles = StyleSheet.create({
+  safeContainer: {
+    flex: 1,
+    backgroundColor: "lightgold",
+  },
   container: {
     flex: 1,
     flexDirection: 'column',
