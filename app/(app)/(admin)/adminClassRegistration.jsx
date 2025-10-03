@@ -28,31 +28,6 @@ const AdminClassRegistration = () => {
   try {
     console.log("Creating Class...");
 
-    // const userId = user?.id || user?._id;
-    // if (!userId) {
-    //             console.log("No user ID found, user object:", user);
-    //             throw new Error("User ID not available");
-    //         }
-
-    //         if (!access_token) {
-    //             console.log("No access token found");
-    //             throw new Error("Access token not available");
-    //         }
-
-    //         console.log("First import user ki details ");
-    //         console.log("user ki id:", userId);
-    //         console.log("access token exists:", !!access_token);
-
-    // const createClassResponse = await fetch(`${API}/admin/createClass`, {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify({
-    //     name: title,
-    //     phone,
-    //     email,
-    //   }),
-    // });
-
     const createClassResponse = await apiCall(`${API}/admin/createClass`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -70,7 +45,7 @@ const AdminClassRegistration = () => {
     }
 
     console.log("Class Created Successfully:", createClassData);
-    alert(`${createClassData.message} with ClassId ${createClassData.class_id}`);
+    alert(`${createClassData.message} with class code : ${createClassData.class_code}`);
     router.push("/adminClassSelector");
   } catch (err) {
     console.error("Class Creation Error:", err);

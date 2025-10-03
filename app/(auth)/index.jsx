@@ -2,10 +2,7 @@
 
 
 // check phone dynamics and screen layout based on that , home screen button issue
-
-
 import { Link } from 'expo-router';
-
 import React, { useContext } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -71,17 +68,26 @@ const app = () => {
   };
 
   const handleLogin = async () => {
-
-    if (isLoggingIn) return; // Prevent multiple calls
+    if (isLoggingIn || isLoading) return;
     setIsLoggingIn(true);
 
-    const res = await login(role,userName, password);
-    // console.log(res.role);
-    if(res.success){
-      console.log("Login Successfully");
-    }
-    else{
-      alert(res.error);
+    try {
+        const res = await login(role, userName, password);
+        
+        if (res.success) {
+            console.log("Login Successfully");
+            // Navigation is now handled by RootLayoutNav
+            // Just clear the form
+            setUserName('');
+            setPassword('');
+        } else {
+            alert(res.error || "Login failed");
+        }
+    } catch (error) {
+        console.error("Login error:", error);
+        alert("An error occurred during login");
+    } finally {
+        setIsLoggingIn(false);
     }
   };
 

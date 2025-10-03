@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const API = "https://strea.com";
+  const API = "https://streak-app-uxyv.onrender.com";
 
   // Load stored auth data at startup
   useEffect(() => {
@@ -53,6 +53,9 @@ export const AuthProvider = ({ children }) => {
       });
 
       const data = await response.json();
+      console.log("Data from AuthContext Login method is below");
+      console.log(data);
+      console.log("Data from AuthContext login method is above");
       if (!response.ok) throw new Error(data.error || "Login failed");
 
       const userWithRole = {
@@ -60,17 +63,29 @@ export const AuthProvider = ({ children }) => {
         role: role,
       };
 
-      if (data.access_token !== access_token) {
-        await SecureStore.setItemAsync("access_token", data.access_token);
-        setAccessToken(data.access_token);
-      }
+      // just for testing 
+      // if (data.access_token !== access_token) {
+      //   await SecureStore.setItemAsync("access_token", data.access_token);
+      //   setAccessToken(data.access_token);
+      // }
 
-      if (JSON.stringify(userWithRole) !== JSON.stringify(user)) {
-        await SecureStore.setItemAsync("user", JSON.stringify(userWithRole));
-        setUser(userWithRole);
-      }
+      // if (JSON.stringify(userWithRole) !== JSON.stringify(user)) {
+      //   await SecureStore.setItemAsync("user", JSON.stringify(userWithRole));
+      //   setUser(userWithRole);
+      // }
 
+      // Store token first
+      await SecureStore.setItemAsync("access_token", data.access_token);
+      await SecureStore.setItemAsync("user", JSON.stringify(userWithRole));
+      
+      // Update state AFTER storage is complete
+      setAccessToken(data.access_token);
+      setUser(userWithRole);
+      
+      // Add a small delay to ensure state updates propagate
+      await new Promise(resolve => setTimeout(resolve, 100));
       return { success: true };
+      
     } catch (err) {
       console.error("Login failed:", err);
       return { success: false, error: err.message };

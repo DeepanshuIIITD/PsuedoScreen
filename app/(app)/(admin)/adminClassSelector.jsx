@@ -1,7 +1,7 @@
+import { useAuth } from "@/app/contexts/AuthContext";
 import { Link, router } from "expo-router";
 import React, { useEffect } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { useAuth } from "@/app/contexts/AuthContext";
 
 
 const AdminClassSelector = () => {
@@ -23,10 +23,11 @@ const AdminClassSelector = () => {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
+    setClasses = [getClassDetails];
 
     console.log("Class Details are as follows")
-
-    router.push(`/(admin)/adminHome`);
+    console.log(getClassDetails);
+    router.push(`/(admin)/adminHome/${classId}`);
   };
 
   return (
