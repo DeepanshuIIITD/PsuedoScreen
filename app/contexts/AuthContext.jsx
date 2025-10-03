@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const API = "https://strea.com";
+  const API = "https://streak-app-uxyv.onrender.com";
 
   // Load stored auth data at startup
   useEffect(() => {
@@ -54,6 +54,9 @@ export const AuthProvider = ({ children }) => {
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Login failed");
+
+      console.log("Response ",response);
+      console.log("Data and api", data, {API},{url});
 
       const userWithRole = {
         ...data.user,

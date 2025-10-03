@@ -196,7 +196,10 @@ const UserClassEnrolled = () => {
     //     fetchClasses();
     // }, [user, access_token]);
 
+    
+
     useEffect(() => {
+        console.log("User info from user Class Enrolled ",user);
         if (user && access_token) {
             fetchClasses();
         } else {
