@@ -12,7 +12,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // importing login element
 import { AuthContext } from '../contexts/AuthContext';
 
+console.log("Index file mounting");
 const app = () => {
+  console.log("Index file rendering");
   // state defining for user and admin login
   const [role, setRole] = React.useState('user'); // 'user', 'admin', or 'guest'
   const [userName, setUserName] = React.useState('');
@@ -230,3 +232,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 })
+
+
+

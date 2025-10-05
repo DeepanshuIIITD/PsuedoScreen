@@ -13,7 +13,8 @@
       "checkAutomatically": "ON_LOAD"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.deepanshualuria.psuedoscreen"
     },
     "android": {
       "adaptiveIcon": {

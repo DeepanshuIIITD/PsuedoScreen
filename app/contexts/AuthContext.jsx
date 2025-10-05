@@ -1,8 +1,9 @@
 import { router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 export const AuthContext = createContext();
+console.log("🟢 AUTH CONTEXT - Loading");
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -13,6 +14,7 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
+  console.log("🟢 AUTH PROVIDER - Mounting");
   const [access_token, setAccessToken] = useState(null);
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -95,6 +97,8 @@ export const AuthProvider = ({ children }) => {
       ]);
       setAccessToken(null);
       setUser(null);
+
+      router.replace("/(auth)");  // for logout 
     }
   };
 
@@ -152,7 +156,7 @@ export const AuthProvider = ({ children }) => {
         } catch (refreshError) {
           console.log("Refresh failed, logging out...");
           await logout();
-          router.replace("/index");
+          // router.replace("/index");
           throw new Error("Session expired. Please login again.");
         }
       }
