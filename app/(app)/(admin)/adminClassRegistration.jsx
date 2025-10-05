@@ -1,19 +1,21 @@
 import { useAuth } from '@/app/contexts/AuthContext';
 import { router } from 'expo-router';
 import React from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+
+console.log("🔴 ADMIN CLASS REGISTRATION - Mounting");
 const AdminClassRegistration = () => {
 
   const [title, setTitle] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [phone, setPhone] = React.useState('');
-
+  const [isLoading, setIsLoading] = React.useState(false);
   // const authContext = useAuth();
   // console.log("AuthContext inside createClass:", authContext);
   // const {user , access_token} = authContext;
   const { apiCall } = useAuth();
-  
+  console.log("🔴 ADMIN CLASS REGISTRATION - Rendering");
 
   // const [description, setDescription] = React.useState('');
 
@@ -28,22 +30,7 @@ const AdminClassRegistration = () => {
   try {
     console.log("Creating Class...");
 
-    // const userId = user?.id || user?._id;
-    // if (!userId) {
-    //             console.log("No user ID found, user object:", user);
-    //             throw new Error("User ID not available");
-    //         }
-
-    //         if (!access_token) {
-    //             console.log("No access token found");
-    //             throw new Error("Access token not available");
-    //         }
-
-    //         console.log("First import user ki details ");
-    //         console.log("user ki id:", userId);
-    //         console.log("access token exists:", !!access_token);
-
-    // const createClassResponse = await fetch(`${API}/admin/createClass`, {
+    // const createClassResponse = await apiCall(`${API}/admin/createClass`, {
     //   method: "POST",
     //   headers: { "Content-Type": "application/json" },
     //   body: JSON.stringify({
@@ -53,29 +40,38 @@ const AdminClassRegistration = () => {
     //   }),
     // });
 
-    const createClassResponse = await apiCall(`${API}/admin/createClass`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: title,
-        phone,
-        email,
-      }),
-    });
+    // const createClassData = await createClassResponse.json();
 
-    const createClassData = await createClassResponse.json();
+    const createClassData = await apiCall(`${API}/admin/createClass`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: title,
+          phone,
+          email,
+        }),
+      });
 
-    if (!createClassResponse.ok) {
-      throw new Error(createClassData.error || createClassData.message ||  "Error creating class");
+  //   
+  console.log("Class Created Successfully:", createClassData);
+
+      // Show success message with class details
+      Alert.alert(
+        "✅ Class Created Successfully!",
+        `${createClassData.name}\n\n📋 Class Code: ${createClassData.class_code}\n🆔 Class ID: ${createClassData.class_id}\n\n📧 ${createClassData.email}\n📱 ${createClassData.phone}`,
+        [
+          {
+            text: "View Classes",
+            onPress: () => router.push("/adminClassSelector"),
+          },
+        ]
+      );
+    } catch (err) {
+      console.error("Class Creation Error:", err);
+      Alert.alert("Error", `Class creation failed: ${err.message}`);
+    } finally {
+      setIsLoading(false);
     }
-
-    console.log("Class Created Successfully:", createClassData);
-    alert(`${createClassData.message} with ClassId ${createClassData.class_id}`);
-    router.push("/adminClassSelector");
-  } catch (err) {
-    console.error("Class Creation Error:", err);
-    alert(`Class creation failed: ${err.message}`);
-  }
 };
 
 
