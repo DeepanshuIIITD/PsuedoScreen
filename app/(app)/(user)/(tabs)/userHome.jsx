@@ -5,9 +5,11 @@
 
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+// for importing class respective details
+import { useClass } from '@/app/contexts/ClassContext';
 
 // Status codes for clarity
 // 0 = Absent, 1 = Present, 2 = Other
@@ -38,6 +40,13 @@ const UserHome = () => {
   const [attendanceData, setAttendanceData] = useState({}); 
   // for safeareview testing purpose only
   const insets = useSafeAreaInsets();
+
+  // for adding profile icon logic 
+  const [menuVisible, setMenuVisible] = useState(false);
+  // for class specific information
+  const {selectedClass} = useClass();
+  const [loading, setIsLoading] = useState(true);
+  console.log("USER HOME --- selected class is ", selectedClass);
 
   const year = 2025;
   const startDate = new Date(year, 0, 1);
@@ -131,18 +140,21 @@ const getPercentages = (summary) => {
   // 🔹 Simulated backend fetch
   useEffect(() => {
     // Example: Later replace this with API call
-    const fetchData = async () => {
-      // Simulated data: key = YYYY-MM-DD, value = status
-      const data = {
-        "2025-01-01": STATUS.PRESENT,
-        "2025-01-02": STATUS.ABSENT,
-        "2025-01-03": STATUS.OTHER,
-        "2025-01-04": STATUS.PRESENT,
-      };
-      setAttendanceData(data);
-    };
-    fetchData();
-  }, []);
+    // const fetchData = async () => {
+    //   // Simulated data: key = YYYY-MM-DD, value = status
+    //   const data = {
+    //     "2025-01-01": STATUS.PRESENT,
+    //     "2025-01-02": STATUS.ABSENT,
+    //     "2025-01-03": STATUS.OTHER,
+    //     "2025-01-04": STATUS.PRESENT,
+    //   };
+    //   setAttendanceData(data);
+    // };
+    // fetchData();
+    if (selectedClass) {
+    setIsLoading(false); // Just mark ready once class is set
+  }
+  }, [selectedClass]);
 
   // Helper to format date keys
   const formatDate = (date) => {
@@ -163,18 +175,57 @@ const getPercentages = (summary) => {
     Alert.alert(`Date: ${key}`, message);
   };
 
+
+  // profile button logical functions
+  const handleLogout = async () => {
+    console.log("You will be logout from using this funciton");
+    
+  };
+
+  const handleEditProfile = async () => {
+    console.log("Your profile will be updated using this funciton");
+  };
+
+  const handleAboutPage = async () => {
+    console.log("You will be redirected to about page using this funciton");
+  };
   
   
 
   return (
-    <View style={[styles.safeContainer, {paddingTop:insets.top}]}>
+    <View style={[styles.safeContainer,{paddingTop:insets.top} ]}>
+      {/* header sepearate from scroll view */}
+      <View style={styles.headerContainer}>
+      <Text style={styles.title}>👋 Hi, {firstName}!</Text>
+      <TouchableOpacity onPress={() => setMenuVisible(!menuVisible)}>
+        <MaterialCommunityIcons name="account-circle" size={32} color="#ff6b6b" />
+      </TouchableOpacity>
+
+      {menuVisible && (
+        <View style={styles.menuContainer}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => handleEditProfile()}>
+            <Text>Edit Profile</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.menuItem} onPress={() => handleLogout()}>
+            <Text>Logout</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.menuItem} onPress={() => handleAboutPage()}>
+            <Text>About Application</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
     <ScrollView style={[styles.screen]}>
       
-      <Text style={styles.title}>👋 Hi, {firstName}!</Text>
+      {/* <View style={flexDirection = 'row' }  >
+        <MaterialCommunityIcons name='profile' size={32} color="#ff6b6b"/>
+        <Text style={styles.title}>👋 Hi, {firstName}!</Text>
+      </View> */}
+      
 
       {/* Welcome Box */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Welcome to Class_Name</Text>
+        <Text style={styles.cardTitle}>Welcome to {selectedClass.name}</Text>
       </View>
 
       {/* Quick Summary */}
@@ -395,4 +446,31 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#111827",
   },
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 16,
+    // suggestions
+    position: "relative", // allows absolutely positioned menu to align correctly
+  },
+  menuContainer: {
+    position: "absolute",
+    top: 50,
+    right: 10,
+     backgroundColor: "#fff", // fixed invalid hex in your code ("#f3f97bff")
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    padding: 10,
+    elevation: 3,
+    elevation: 10, // ⬆️ for Android layering
+    zIndex: 9999,   // ⬆️ for iOS layering
+  },
+  menuItem: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+
 });

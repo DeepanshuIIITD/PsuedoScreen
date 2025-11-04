@@ -1,195 +1,3 @@
-// import { router } from "expo-router";
-// import * as SecureStore from "expo-secure-store";
-// import { createContext, useContext, useEffect, useState } from "react";
-
-// export const AuthContext = createContext();
-// console.log("🟢 AUTH CONTEXT - Loading");
-
-// export const useAuth = () => {
-//   const context = useContext(AuthContext);
-//   if (!context) {
-//     throw new Error("useAuth must be used within AuthProvider");
-//   }
-//   return context;
-// };
-
-// export const AuthProvider = ({ children }) => {
-//   console.log("🟢 AUTH PROVIDER - Mounting");
-//   const [access_token, setAccessToken] = useState(null);
-//   const [user, setUser] = useState(null);
-//   const [isLoading, setIsLoading] = useState(true);
-
-//   const API = "https://streak-app-uxyv.onrender.com";
-
-//   // Load stored auth data at startup
-//   useEffect(() => {
-//     loadStoredAuth();
-//   }, []);
-
-//   const loadStoredAuth = async () => {
-//     try {
-//       const [storedToken, storedUserData] = await Promise.all([
-//         SecureStore.getItemAsync("access_token"),
-//         SecureStore.getItemAsync("user"),
-//       ]);
-
-//       if (storedToken && storedUserData) {
-//         setAccessToken(storedToken);
-//         setUser(JSON.parse(storedUserData));
-//       }
-//     } catch (error) {
-//       console.error("Error loading stored auth:", error);
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
-
-//   const login = async (role, username, password) => {
-//     try {
-//       const url = role === "admin" ? "/admin/signIn" : "/user/signIn";
-//       const response = await fetch(`${API}${url}`, {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({ userName: username, password }),
-//         credentials: "include", // IMPORTANT for cookies (refresh token)
-//       });
-
-//       const data = await response.json();
-//       if (!response.ok) throw new Error(data.error || "Login failed");
-
-//       console.log("Response ",response);
-//       console.log("Data and api", data, {API},{url});
-
-//       const userWithRole = {
-//         ...data.user,
-//         role: role,
-//       };
-
-//       if (data.access_token !== access_token) {
-//         await SecureStore.setItemAsync("access_token", data.access_token);
-//         setAccessToken(data.access_token);
-//       }
-
-//       if (JSON.stringify(userWithRole) !== JSON.stringify(user)) {
-//         await SecureStore.setItemAsync("user", JSON.stringify(userWithRole));
-//         setUser(userWithRole);
-//       }
-
-//       return { success: true };
-//     } catch (err) {
-//       console.error("Login failed:", err);
-//       return { success: false, error: err.message };
-//     }
-//   };
-
-//   const logout = async () => {
-//     try {
-//       await fetch(`${API}/logout`, {
-//         method: "POST",
-//         credentials: "include",
-//       });
-//     } catch (error) {
-//       console.error("Logout API call failed:", error);
-//     } finally {
-//       await Promise.all([
-//         SecureStore.deleteItemAsync("access_token").catch(() => {}),
-//         SecureStore.deleteItemAsync("user").catch(() => {}),
-//       ]);
-//       setAccessToken(null);
-//       setUser(null);
-
-//       router.replace("/(auth)");  // for logout 
-//     }
-//   };
-
-//   const attemptTokenRefresh = async () => {
-//     try {
-//       const response = await fetch(`${API}/user/refreshToken`, {
-//         method: "POST",
-//         credentials: "include",
-//         headers: { "Content-Type": "application/json" },
-//       });
-
-//       const data = await response.json();
-//       if (!response.ok) throw new Error(data.error || "Refresh failed");
-
-//       await SecureStore.setItemAsync("access_token", data.access_token);
-//       setAccessToken(data.access_token);
-
-//       return data.access_token;
-//     } catch (err) {
-//       console.error("Token refresh failed:", err);
-//       await logout();
-//       throw new Error("Session expired. Please login again.");
-//     }
-//   };
-
-//   // ✅ Unified API call wrapper (replaces apiHelper)
-//   const apiCall = async (url, options = {}) => {
-//     try {
-//       // First attempt
-//       let response = await fetch(url, {
-//         ...options,
-//         headers: {
-//           "Content-Type": "application/json",
-//           ...options.headers,
-//           Authorization: `Bearer ${access_token}`,
-//         },
-//         credentials: "include",
-//       });
-
-//       // If token expired → refresh and retry
-//       if (response.status === 401) {
-//         console.log("Access token expired, refreshing...");
-
-//         try {
-//           const newToken = await attemptTokenRefresh();
-//           response = await fetch(url, {
-//             ...options,
-//             headers: {
-//               "Content-Type": "application/json",
-//               ...options.headers,
-//               Authorization: `Bearer ${newToken}`,
-//             },
-//             credentials: "include",
-//           });
-//         } catch (refreshError) {
-//           console.log("Refresh failed, logging out...");
-//           await logout();
-//           // router.replace("/index");
-//           throw new Error("Session expired. Please login again.");
-//         }
-//       }
-
-//       if (!response.ok) {
-//         throw new Error(`API Error: ${response.status}`);
-//       }
-
-//       return await response.json();
-//     } catch (error) {
-//       console.error("API call failed:", error);
-//       throw error;
-//     }
-//   };
-
-//   const value = {
-//     user,
-//     access_token,
-//     isLoading,
-//     login,
-//     logout,
-//     refreshToken: attemptTokenRefresh,
-//     apiCall, // 👈 Use this everywhere instead of apiHelper
-//   };
-
-//   return (
-//     <AuthContext.Provider value={value}>
-//       {children}
-//     </AuthContext.Provider>
-//   );
-// };
-
-
 import { router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { createContext, useContext, useEffect, useState } from "react";
@@ -216,6 +24,7 @@ export const AuthProvider = ({ children }) => {
   // Load stored auth data at startup
   useEffect(() => {
     loadStoredAuth();
+    // logout();       // force logout
   }, []);
 
   const loadStoredAuth = async () => {
@@ -386,10 +195,13 @@ export const AuthProvider = ({ children }) => {
         }
       }
 
-      console.log("Error occurs in api calling ");
+      
+      console.log("AUTH CONTEXT FILE - Error occurs in api calling ");
+      console.log("user id - ",user.id, " Type of user_id is ", typeof(user.id));
+      // console.log("Type of user_id is ", )
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `API Error: ${response.status}`);
+        throw new Error(errorData.error || `API Error: ${response.message}`);
       }
 
       return await response.json();

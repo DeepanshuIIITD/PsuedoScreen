@@ -42,7 +42,7 @@ function RootLayoutNav() {
     const inAppGroup = segments[0] === '(app)';
 
   // checking  
-  console.log("Root Layout file se ", user);
+  console.log("Root Layout file se");
 
 
     if (!user && !inAuthGroup) {

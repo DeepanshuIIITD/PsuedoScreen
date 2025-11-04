@@ -1,4 +1,5 @@
 // import { apiCall } from '@/app/utils/apiHelper';
+import { useClass } from '@/app/contexts/ClassContext';
 import { Link, router } from 'expo-router';
 import React, { useEffect } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -11,23 +12,23 @@ const UserClassEnrolled = () => {
     const [error, setError] = React.useState(null);
     const [refreshing, setRefreshing] = React.useState(false);
     const insets = useSafeAreaInsets();
-    
+    const {selectClass} = useClass();
     // const authContext = useAuth();
-    // const { user, access_token } = authContext; // Get user and accessToken from auth context\
+    const { user, access_token } = useAuth(); // Get user and accessToken from auth context\
     const {apiCall} = useAuth();
     const API_URL = 'https://streak-app-uxyv.onrender.com';
 
     const fetchClasses = async () => {
         try {
 
-            const data = await apiCall(
-                `${API_URL}/user/classList`,
-                { method: 'GET' },
-                authContext
-            );
+            const data = await apiCall(`${API_URL}/user/classList`,{
+                method: 'GET' ,
+                headers: { "Content-Type": "application/json" },
+                // authContext,
+                // useAuth,
+        });
 
             
-            // const data = await response.json();
             console.log('API response data:', data);
 
             // Handle different response structures
@@ -100,9 +101,13 @@ const UserClassEnrolled = () => {
         fetchClasses();
     };
 
-    const redirectToClass = (classId) => {
-        console.log("Redirecting to Class:", classId);
-        router.push(`/(user)/(tabs)/userHome/${classId}`);
+    const redirectToClass = (classItem) => {
+        // console.log("Redirecting to Class:", classId);
+        // router.push(`/(user)/(tabs)/userHome/${classId}`);
+        selectClass(classItem);
+        console.log("From CLASS ENROLLED You pressed this CLASS ");
+        console.log("Class details ", classItem);
+        router.push("/(user)/(tabs)/userHome");
     };
 
     if (loading) {
@@ -152,17 +157,30 @@ const UserClassEnrolled = () => {
                     >
                         {classes.map((item) => (
                             <Pressable
-                                key={item.id}
+                                key={item}
                                 style={styles.classCard}
-                                onPress={() => redirectToClass(item.id)}
+                                onPress={() => redirectToClass(item)}
                             >
-                                <Text style={styles.classText}>{item.title}</Text>
+                                {/* <Text style={styles.classText}>{item.title}</Text>
                                 {item.class_code && (
                                     <Text style={styles.classCode}>Code: {item.class_code}</Text>
                                 )}
                                 {item.joined_at && (
                                     <Text style={styles.joinedDate}>Joined: {new Date(item.joined_at).toLocaleDateString()}</Text>
-                                )}
+                                )} */}
+                                <Text style={styles.classText}>
+                                    {item.title}
+                                </Text>
+                                <Text style={styles.classCode}>
+                                Code: {item.ClassCode}
+                                </Text>
+                                {/* <View style={styles.classDetails}>
+                                <Text style={styles.classDetailText}>📧 {item.Email}</Text>
+                                <Text style={styles.classDetailText}>📱 {item.Phone}</Text>
+                                </View> */}
+                                <Text style={styles.joinedDate}>
+                                Joined: {new Date(item.joined_at).toLocaleDateString()}
+                                </Text>
                             </Pressable>
                         ))}
                     </ScrollView>

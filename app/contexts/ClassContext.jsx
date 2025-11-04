@@ -38,6 +38,8 @@ export const ClassProvider = ({ children }) => {
     clearClass,
     };
 
+    console.log("Value from ClassContext - ",value);
+
     return (
     <ClassContext.Provider value={value}>
         {children}

@@ -22,7 +22,7 @@ const AdminHome = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isLoading, setIsLoading] = useState(true);
 
-  console.log("Selected class :", selectedClass);
+  
 
   // Fetch class data when component mounts
   useEffect(() => {
@@ -30,6 +30,7 @@ const AdminHome = () => {
     setIsLoading(false); // Just mark ready once class is set
   }
 }, [selectedClass]);
+console.log("Selected class :", selectedClass);
 
   const fetchAttendanceData = async () => {
     try {

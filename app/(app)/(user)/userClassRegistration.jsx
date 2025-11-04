@@ -1,18 +1,31 @@
+import { useAuth } from "@/app/contexts/AuthContext";
 import { router } from 'expo-router';
 import React from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+const API = "https://streak-app-uxyv.onrender.com";
 
 const userClassRegistration = () => {
 
   const [classCode, setClassCode] = React.useState('');
-
-  const redirectToClass = (code) => {
+  const {apiCall} = useAuth();
+  const redirectToClass = async (code) => {
       // router.push(`/(user)/userHome/${classId}`);
       if(code.trim() === '') {
         alert('Please enter a valid class code');
         return;
       }
-      router.push(`/(user)/userHome`);          // post "/user/enroll/:id"
+
+      
+      console.log("Calling Join Class API ----- @API" , `${API}/user/enroll/${code}`);
+      const classResponse = await apiCall(`${API}/user/enroll/${code}`,{
+        method : "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      console.log("USER_CLASS_REGISTRATION , response ", classResponse);
+
+      // router.push(`/(user)/userHome`);          // post "/user/enroll/:id"
+      router.replace('/(app)/(user)/userClassEnrolled');
       alert('Successfully joined the class!');
   }
   
