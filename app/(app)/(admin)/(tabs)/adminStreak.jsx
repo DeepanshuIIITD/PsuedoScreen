@@ -1,11 +1,32 @@
-import React from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-// import { ScrollView } from 'react-native-gesture-handler';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import RNPickerSelect from 'react-native-picker-select';
+import * as Animatable from 'react-native-animatable';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+
+const STATUS = {
+  ABSENT: 0,
+  PRESENT: 1,
+  OTHER: 2,
+};
+
+const getStatusColor = (status) => {
+  switch (status) {
+    case STATUS.PRESENT: return "#22c55e";
+    case STATUS.ABSENT: return "#ef4444";
+    case STATUS.OTHER: return "#3b82f6";
+    default: return "#d1d5db";
+  }
+};
+
+const weekdays = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
 const adminStreak = () => {
+  const insets = useSafeAreaInsets();
   const [isjoined, setJoined] = React.useState(null); 
   const [attendanceSubmitted, setAttendanceSubmitted] = React.useState(false); // new
   const [todayNote, setTodayNote] = React.useState("");
@@ -13,6 +34,59 @@ const adminStreak = () => {
   const [isReportView, setIsReportView] = React.useState(null); 
   const [selectedTime, setSelectedTime] = React.useState(new Date());
   const [showTimePicker, setShowTimePicker] = React.useState(false);
+
+  // Graph state (mock data for admin)
+  const [attendanceData, setAttendanceData] = useState({
+    "2025-01-01": STATUS.PRESENT,
+    "2025-01-02": STATUS.ABSENT,
+    "2025-01-03": STATUS.PRESENT,
+    "2025-01-04": STATUS.OTHER,
+    "2025-01-05": STATUS.PRESENT,
+  });
+
+  const year = 2025;
+  const days = useMemo(() => {
+    const list = [];
+    for (let i = 0; i < 365; i++) list.push(new Date(year, 0, 1 + i));
+    return list;
+  }, []);
+
+  const weeks = useMemo(() => {
+    const out = [];
+    let w = [];
+    days.forEach((d) => {
+      w.push(d);
+      if (w.length === 7) { out.push(w); w = []; }
+    });
+    return out;
+  }, [days]);
+
+  const monthMarkers = useMemo(() => {
+    const markers = [];
+    weeks.forEach((week, idx) => {
+      const firstDay = week[0];
+      if (firstDay.getDate() <= 7) markers.push({ month: months[firstDay.getMonth()], weekIndex: idx });
+    });
+    return markers;
+  }, [weeks]);
+
+  const formatDate = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
+  const handleDayPress = (date) => {
+    const key = formatDate(date);
+    const status = attendanceData[key] ?? null;
+    let message;
+    if (status === STATUS.PRESENT) message = "✅ Present";
+    else if (status === STATUS.ABSENT) message = "❌ Absent";
+    else if (status === STATUS.OTHER) message = "ℹ️ Other (Genuine Reason)";
+    else message = "No data available";
+    Alert.alert(`Date: ${key}`, message);
+  };
 
   const todayDate = new Date().toLocaleDateString();
   const formatTime = (date) => {
@@ -179,7 +253,7 @@ const renderYearlyReport = () => (
 
 
   return (
-    <ScrollView style={styles.screen}>
+    <ScrollView style={[styles.screen]} contentContainerStyle={{ paddingBottom: 24, paddingTop: insets.top }}>
       <Text style={styles.title}> Today's Attendance </Text>
 
       {/* Class Entry */}
@@ -258,6 +332,76 @@ const renderYearlyReport = () => (
             {isReportView ? renderMonthlyReport() : renderYearlyReport()}
           </View>
         )}
+
+        {/* Streak Graph (same as user) */}
+        <View style={styles.card}>
+          <View style={styles.streakHeader}>
+            <Text style={styles.cardTitle}>Streak</Text>
+            <Animatable.View 
+              animation="pulse" 
+              easing="ease-out" 
+              iterationCount="infinite" 
+              style={styles.streakIconWrapper}
+            >
+              <MaterialCommunityIcons name="fire" size={32} color="#ff6b6b" />
+            </Animatable.View>
+          </View>
+          <Text style={styles.streakCounter}>🔥 20 Days</Text>
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={{ flexDirection: "column" }}>
+              {/* Month Row */}
+              <View style={styles.monthRow}>
+                <View style={{ width: 36 }} />
+                {weeks.map((_, weekIndex) => {
+                  const marker = monthMarkers.find(m => m.weekIndex === weekIndex);
+                  return (
+                    <View key={weekIndex} style={{ width: 36, alignItems: "center" }}>
+                      {marker ? (
+                        <Text style={styles.monthText}>{marker.month}</Text>
+                      ) : null}
+                    </View>
+                  );
+                })}
+              </View>
+
+              <View style={{ flexDirection: "row" }}>
+                {/* Weekday labels */}
+                <View style={{ marginRight: 6 }}>
+                  {weekdays.map((day) => (
+                    <View key={day} style={{ height: 36, justifyContent: "center" }}>
+                      <Text style={styles.weekdayText}>{day}</Text>
+                    </View>
+                  ))}
+                </View>
+
+                {/* Contribution Grid */}
+                <View style={{ flexDirection: "row" }}>
+                  {weeks.map((week, weekIndex) => (
+                    <View key={weekIndex} style={styles.weekColumn}>
+                      {week.map((date, dayIndex) => {
+                        const key = formatDate(date);
+                        const status = attendanceData[key] ?? null;
+                        return (
+                          <Pressable
+                            key={dayIndex}
+                            onPress={() => handleDayPress(date)}
+                          >
+                            <View
+                              style={[styles.dayBox, { backgroundColor: getStatusColor(status) }]}
+                            >
+                              <Text style={styles.dayText}>{date.getDate()}</Text>
+                            </View>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  ))}
+                </View>
+              </View>
+            </View>
+          </ScrollView>
+        </View>
     </ScrollView>
   );
 };
@@ -379,6 +523,37 @@ const styles = StyleSheet.create({
     color: "#ef4444",
     marginVertical: 12,
     textAlign: "center",
+  },
+  monthRow: {
+    flexDirection: "row",
+    marginBottom: 6,
+    alignItems: "center",
+  },
+  monthText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#374151",
+  },
+  weekdayText: {
+    fontSize: 12,
+    color: "#6b7280",
+  },
+  weekColumn: {
+    flexDirection: "column",
+    marginHorizontal: 1,
+  },
+  dayBox: {
+    width: 36,
+    height: 36,
+    margin: 1,
+    borderRadius: 6,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  dayText: {
+    fontSize: 12,
+    fontWeight: "bold",
+    color: "#111827",
   },
   monthRow: {
     flexDirection: "row",

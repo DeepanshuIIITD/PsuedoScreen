@@ -349,7 +349,8 @@
 
 
 import React, { useEffect, useState } from "react";
-import { FlatList, StyleSheet, Text, View } from "react-native";
+import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const adminStudents = () => {
   const [studentNameList, setStudentNameList] = useState([
@@ -403,6 +404,28 @@ const adminStudents = () => {
     }
   };
 
+  const handleRemoveStudent = (student) => {
+    Alert.alert(
+      "Remove Student",
+      `Are you sure you want to remove ${student.firstName} ${student.lastName} from this class?`,
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Remove",
+          style: "destructive",
+          onPress: () => {
+            // TODO: Replace with actual API call when backend is ready
+            setStudentNameList(prev => prev.filter(s => s.id !== student.id));
+            Alert.alert("Success", `${student.firstName} ${student.lastName} has been removed from the class.`);
+          }
+        }
+      ]
+    );
+  };
+
   const renderStudentItem = ({ item }) => {
     const initials =
       (item.firstName?.[0] || "").toUpperCase() +
@@ -416,6 +439,12 @@ const adminStudents = () => {
         <Text style={styles.studentName}>
           {getTrophy(item.rank)} {item.firstName} {item.lastName}
         </Text>
+        <TouchableOpacity
+          style={styles.removeButton}
+          onPress={() => handleRemoveStudent(item)}
+        >
+          <MaterialCommunityIcons name="delete-outline" size={20} color="#ef4444" />
+        </TouchableOpacity>
       </View>
     );
   };
@@ -501,6 +530,12 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 12,
     marginBottom: 12,
+    justifyContent: "space-between",
+  },
+  removeButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: "#fee2e2",
   },
   avatar: {
     backgroundColor: "#2563eb",

@@ -1,18 +1,20 @@
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useClass } from '../../../contexts/ClassContext';
 
 
 
 const STATUS = {
-  PRESENT: 'present',
-  ABSENT: 'absent',
-  OTHER: 'other',
+  PRESENT: 1, // Match userHome.jsx status format
+  ABSENT: 0,
+  OTHER: 2,
 };
 
 const AdminHome = () => {
-  const { user, apiCall } = useAuth();
+  const { user, apiCall, logout } = useAuth();
   const {selectedClass } = useClass();
   // const { classId, className, classCode, email, phone } = useLocalSearchParams();
   const API = "https://streak-app-uxyv.onrender.com";
@@ -21,33 +23,47 @@ const AdminHome = () => {
   const [attendanceData, setAttendanceData] = useState({});
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isLoading, setIsLoading] = useState(true);
+  const [menuVisible, setMenuVisible] = useState(false);
 
   
 
   // Fetch class data when component mounts
   useEffect(() => {
     if (selectedClass) {
-    setIsLoading(false); // Just mark ready once class is set
-  }
-}, [selectedClass]);
-console.log("Selected class :", selectedClass);
+      setIsLoading(false);
+      // Fetch mock attendance data for UI demonstration
+      fetchAttendanceData();
+    }
+  }, [selectedClass]);
+  console.log("Selected class :", selectedClass);
 
+  // Mock attendance data for UI demonstration
+  // TODO: Replace with actual API call when backend is ready
   const fetchAttendanceData = async () => {
     try {
       setIsLoading(true);
       
-      // Fetch attendance data for this class
-      const attendanceResponse = await apiCall(`${API}/admin/class/${classId}/attendance`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      });
+      // Mock data for frontend demonstration
+      const mockAttendanceData = {
+        "2025-01-01": STATUS.PRESENT,
+        "2025-01-02": STATUS.PRESENT,
+        "2025-01-03": STATUS.ABSENT,
+        "2025-01-04": STATUS.PRESENT,
+      };
+      
+      setAttendanceData(mockAttendanceData);
 
-      console.log("Attendance data:", attendanceResponse);
-      setAttendanceData(attendanceResponse || {});
+      // TODO: Uncomment when backend is ready
+      // if (selectedClass?.id) {
+      //   const attendanceResponse = await apiCall(`${API}/admin/class/${selectedClass.id}/attendance`, {
+      //     method: "GET",
+      //     headers: { "Content-Type": "application/json" },
+      //   });
+      //   setAttendanceData(attendanceResponse || {});
+      // }
 
     } catch (err) {
       console.error("Error fetching attendance data:", err);
-      // Set empty object if fetch fails, so UI still shows class info
       setAttendanceData({});
     } finally {
       setIsLoading(false);
@@ -146,31 +162,62 @@ console.log("Selected class :", selectedClass);
   }
 
   if (!selectedClass) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.errorText}>No class selected</Text>
+        <Pressable 
+          style={styles.backButton} 
+          onPress={() => router.push("/(admin)/adminClassSelector")}
+        >
+          <Text style={styles.backButtonText}>Go to Class Selector</Text>
+        </Pressable>
+      </View>
+    );
+  }
 
-  return (
-    <View style={styles.loadingContainer}>
-      <Text style={styles.errorText}>No class selected</Text>
-      <Pressable 
-        style={styles.backButton} 
-        onPress={() => router.push("/(admin)/adminClassSelector")}
-      >
-        <Text style={styles.backButtonText}>Go to Class Selector</Text>
-      </Pressable>
-    </View>
-  );
-}
-
-  // const bestStreak = getBestStreak(attendanceData);
-  // const totalSummary = getTotalSummary(attendanceData);
-  // const weekSummary = getCurrentWeekSummary(attendanceData);
-  // const todayStrength = getTodayStrength(attendanceData);
-  // const totalPercentages = getPercentages(totalSummary);
-  // const todayPercentages = getPercentages(todayStrength);
+  const bestStreak = getBestStreak(attendanceData);
+  const totalSummary = getTotalSummary(attendanceData);
+  const weekSummary = getCurrentWeekSummary(attendanceData);
+  const todayStrength = getTodayStrength(attendanceData);
+  const totalPercentages = getPercentages(totalSummary);
+  const todayPercentages = getPercentages(todayStrength);
 
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>Hi, {user?.userName || 'Admin'}!</Text>
+      <View style={styles.headerContainer}>
+        <Text style={styles.title}>Hi, {user?.userName || 'Admin'}!</Text>
+        <TouchableOpacity onPress={() => setMenuVisible(!menuVisible)}>
+          <MaterialCommunityIcons name="account-circle" size={32} color="#2563eb" />
+        </TouchableOpacity>
+        {menuVisible && (
+          <>
+            <TouchableOpacity
+              style={styles.menuOverlay}
+              onPress={() => setMenuVisible(false)}
+              activeOpacity={1}
+            />
+            <View style={styles.menuContainer}>
+              <TouchableOpacity
+                style={[styles.menuItem, styles.menuItemDanger]}
+                onPress={() => {
+                  Alert.alert(
+                    'Logout',
+                    'Are you sure you want to logout?',
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      { text: 'Logout', style: 'destructive', onPress: async () => { await logout(); } },
+                    ]
+                  );
+                }}
+              >
+                <MaterialCommunityIcons name="logout" size={20} color="#ef4444" style={styles.menuIcon} />
+                <Text style={[styles.menuItemText, styles.menuItemTextDanger]}>Logout</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
+      </View>
       
       {/* Welcome Box */}
       <View style={styles.card}>
@@ -187,7 +234,7 @@ console.log("Selected class :", selectedClass);
       </View>
 
       {/* Quick Summary Box */}
-      {/* <View style={styles.card}>
+      <View style={styles.card}>
         <Text style={styles.cardTitle}>Quick Summary</Text>
         <View style={styles.innerBox}>
           <Text style={styles.summaryText}>Best Streak: {bestStreak} days</Text>
@@ -210,7 +257,7 @@ console.log("Selected class :", selectedClass);
       </View>
 
       {/* Today's Summary */}
-      {/* <View style={styles.card}>
+      <View style={styles.card}>
         <Text style={styles.cardTitle}>Today's Summary</Text>
         <View style={styles.innerBox}>
           <Text style={styles.dateText}>{formattedDate}</Text>
@@ -225,7 +272,7 @@ console.log("Selected class :", selectedClass);
             Present: {todayPercentages.present}% | Absent: {todayPercentages.absent}% | Other: {todayPercentages.other}%
           </Text>
         </View>
-      </View> */}
+      </View>
     </ScrollView>
   );
 };
@@ -237,6 +284,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f9fafb",
     padding: 16,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    position: 'relative',
   },
   loadingContainer: {
     flex: 1,
@@ -259,6 +312,43 @@ const styles = StyleSheet.create({
     color: "#111827",
     marginBottom: 20,
   },
+  menuOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 998,
+  },
+  menuContainer: {
+    position: 'absolute',
+    top: 46,
+    right: 0,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    elevation: 10,
+    zIndex: 9999,
+    minWidth: 180,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  menuItemDanger: {},
+  menuIcon: { marginRight: 12 },
+  menuItemText: { fontSize: 16, color: '#374151', fontWeight: '500' },
+  menuItemTextDanger: { color: '#ef4444' },
   card: {
     backgroundColor: "white",
     borderRadius: 16,

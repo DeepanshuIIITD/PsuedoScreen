@@ -169,18 +169,16 @@ const UserClassEnrolled = () => {
                                     <Text style={styles.joinedDate}>Joined: {new Date(item.joined_at).toLocaleDateString()}</Text>
                                 )} */}
                                 <Text style={styles.classText}>
-                                    {item.title}
+                                    {item.title || item.name || 'Untitled Class'}
                                 </Text>
                                 <Text style={styles.classCode}>
-                                Code: {item.ClassCode}
+                                Code: {item.class_code || item.ClassCode || item.code || 'N/A'}
                                 </Text>
-                                {/* <View style={styles.classDetails}>
-                                <Text style={styles.classDetailText}>📧 {item.Email}</Text>
-                                <Text style={styles.classDetailText}>📱 {item.Phone}</Text>
-                                </View> */}
-                                <Text style={styles.joinedDate}>
-                                Joined: {new Date(item.joined_at).toLocaleDateString()}
-                                </Text>
+                                {item.joined_at && (
+                                  <Text style={styles.joinedDate}>
+                                    Joined: {new Date(item.joined_at).toLocaleDateString()}
+                                  </Text>
+                                )}
                             </Pressable>
                         ))}
                     </ScrollView>

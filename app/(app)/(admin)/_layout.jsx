@@ -22,7 +22,7 @@
 // }
 
 import { ClassProvider } from '@/app/contexts/ClassContext';
-import { Stack } from 'expo-router';
+import { Redirect, Stack } from 'expo-router';
 import { useAuth } from '../../contexts/AuthContext';
 
 

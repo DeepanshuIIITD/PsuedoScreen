@@ -4,11 +4,13 @@
 
 
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // for importing class respective details
+import { useAuth } from '@/app/contexts/AuthContext';
 import { useClass } from '@/app/contexts/ClassContext';
 
 // Status codes for clarity
@@ -36,8 +38,21 @@ const months = [
 ];
 
 const UserHome = () => {
-  const [firstName] = useState("Deepanshu");
-  const [attendanceData, setAttendanceData] = useState({}); 
+  const { user, logout } = useAuth();
+  const firstName = user?.firstName || user?.userName || "User";
+  // Mock attendance data for UI demonstration
+  const [attendanceData, setAttendanceData] = useState({
+    "2025-01-01": STATUS.PRESENT,
+    "2025-01-02": STATUS.PRESENT,
+    "2025-01-03": STATUS.ABSENT,
+    "2025-01-04": STATUS.PRESENT,
+    "2025-01-05": STATUS.OTHER,
+    "2025-01-06": STATUS.PRESENT,
+    "2025-01-07": STATUS.PRESENT,
+    "2025-01-08": STATUS.PRESENT,
+    "2025-01-09": STATUS.PRESENT,
+    "2025-01-10": STATUS.ABSENT,
+  }); 
   // for safeareview testing purpose only
   const insets = useSafeAreaInsets();
 
@@ -156,9 +171,12 @@ const getPercentages = (summary) => {
   }
   }, [selectedClass]);
 
-  // Helper to format date keys
+  // Helper to format date keys in local time to avoid UTC shift
   const formatDate = (date) => {
-    return date.toISOString().split("T")[0]; // YYYY-MM-DD
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`; // YYYY-MM-DD
   };
 
   // Handle tap on a cell
@@ -178,16 +196,33 @@ const getPercentages = (summary) => {
 
   // profile button logical functions
   const handleLogout = async () => {
-    console.log("You will be logout from using this funciton");
-    
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to logout?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Logout",
+          style: "destructive",
+          onPress: async () => {
+            await logout();
+          }
+        }
+      ]
+    );
   };
 
   const handleEditProfile = async () => {
-    console.log("Your profile will be updated using this funciton");
+    setMenuVisible(false);
+    router.push("/(app)/(user)/editProfile");
   };
 
   const handleAboutPage = async () => {
-    console.log("You will be redirected to about page using this funciton");
+    setMenuVisible(false);
+    router.push("/(app)/(user)/about");
   };
   
   
@@ -202,17 +237,38 @@ const getPercentages = (summary) => {
       </TouchableOpacity>
 
       {menuVisible && (
-        <View style={styles.menuContainer}>
-          <TouchableOpacity style={styles.menuItem} onPress={() => handleEditProfile()}>
-            <Text>Edit Profile</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem} onPress={() => handleLogout()}>
-            <Text>Logout</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem} onPress={() => handleAboutPage()}>
-            <Text>About Application</Text>
-          </TouchableOpacity>
-        </View>
+        <>
+          <TouchableOpacity
+            style={styles.menuOverlay}
+            onPress={() => setMenuVisible(false)}
+            activeOpacity={1}
+          />
+          <View style={styles.menuContainer}>
+            <TouchableOpacity 
+              style={styles.menuItem} 
+              onPress={() => handleEditProfile()}
+            >
+              <MaterialCommunityIcons name="account-edit" size={20} color="#374151" style={styles.menuIcon} />
+              <Text style={styles.menuItemText}>Edit Profile</Text>
+            </TouchableOpacity>
+            <View style={styles.menuDivider} />
+            <TouchableOpacity 
+              style={styles.menuItem} 
+              onPress={() => handleAboutPage()}
+            >
+              <MaterialCommunityIcons name="information" size={20} color="#374151" style={styles.menuIcon} />
+              <Text style={styles.menuItemText}>About Application</Text>
+            </TouchableOpacity>
+            <View style={styles.menuDivider} />
+            <TouchableOpacity 
+              style={[styles.menuItem, styles.menuItemDanger]} 
+              onPress={() => handleLogout()}
+            >
+              <MaterialCommunityIcons name="logout" size={20} color="#ef4444" style={styles.menuIcon} />
+              <Text style={[styles.menuItemText, styles.menuItemTextDanger]}>Logout</Text>
+            </TouchableOpacity>
+          </View>
+        </>
       )}
     </View>
     <ScrollView style={[styles.screen]}>
@@ -451,26 +507,61 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     padding: 16,
-    // suggestions
-    position: "relative", // allows absolutely positioned menu to align correctly
+    position: "relative",
+    backgroundColor: "#fff",
+    zIndex: 1000,
+  },
+  menuOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 998,
   },
   menuContainer: {
     position: "absolute",
-    top: 50,
+    top: 60,
     right: 10,
-     backgroundColor: "#fff", // fixed invalid hex in your code ("#f3f97bff")
-    borderRadius: 10,
+    backgroundColor: "#fff",
+    borderRadius: 12,
     shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    padding: 10,
-    elevation: 3,
-    elevation: 10, // ⬆️ for Android layering
-    zIndex: 9999,   // ⬆️ for iOS layering
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    elevation: 10,
+    zIndex: 9999,
+    minWidth: 200,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
   },
   menuItem: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  menuItemDanger: {
+    // Special styling for logout
+  },
+  menuIcon: {
+    marginRight: 12,
+  },
+  menuItemText: {
+    fontSize: 16,
+    color: "#374151",
+    fontWeight: "500",
+  },
+  menuItemTextDanger: {
+    color: "#ef4444",
+  },
+  menuDivider: {
+    height: 1,
+    backgroundColor: "#e5e7eb",
+    marginVertical: 4,
   },
 
 });
