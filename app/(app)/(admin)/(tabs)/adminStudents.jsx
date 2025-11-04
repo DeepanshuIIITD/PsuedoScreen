@@ -348,11 +348,18 @@
 // });
 
 
-import React, { useEffect, useState } from "react";
-import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import React, { useEffect, useState } from "react";
+import { Alert, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 const adminStudents = () => {
+  const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+  const palette = colorScheme === 'dark'
+    ? { bg:'#0b0f14', card:'#0f172a', text:'#e5e7eb', sub:'#94a3b8', border:'#1f2937' }
+    : { bg:'#f9fafb', card:'#ffffff', text:'#111827', sub:'#374151', border:'#e5e7eb' };
   const [studentNameList, setStudentNameList] = useState([
     { id: "1", firstName: "Hello", lastName: "Bye" },
     { id: "2", firstName: "Chaman", lastName: "Tel" },
@@ -373,6 +380,8 @@ const adminStudents = () => {
   ]);
 
   const [studentCount, setStudentCount] = useState(0);
+  const [query, setQuery] = useState("");
+  const [filterTopOnly, setFilterTopOnly] = useState(false);
 
   useEffect(() => {
     setStudentCount(studentNameList.length);
@@ -389,6 +398,11 @@ const adminStudents = () => {
       if (a.rank) return -1; // performer first
       if (b.rank) return 1;
       return a.firstName.localeCompare(b.firstName); // rest alphabetically
+    })
+    .filter((s) => {
+      const matches = `${s.firstName} ${s.lastName}`.toLowerCase().includes(query.toLowerCase());
+      const topPass = filterTopOnly ? !!s.rank : true;
+      return matches && topPass;
     });
 
   const getTrophy = (rank) => {
@@ -450,8 +464,26 @@ const adminStudents = () => {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#f9fafb", padding: 16 }}>
-      <Text style={styles.title}>👩‍🎓 Students</Text>
+    <View style={{ flex: 1, backgroundColor: palette.bg, padding: 16, paddingTop: insets.top, paddingBottom: insets.bottom + 8 }}>
+      <Text style={[styles.title,{color: palette.text}]}>👩‍🎓 Students</Text>
+
+      {/* Search and Filters */}
+      <View style={styles.filtersRow}>
+        <TextInput
+          placeholder="Search students"
+          placeholderTextColor="#9ca3af"
+          value={query}
+          onChangeText={setQuery}
+          style={[styles.searchInput,{backgroundColor: palette.card, borderColor: palette.border, color: palette.text}]}
+        />
+        <TouchableOpacity
+          style={[styles.filterChip, filterTopOnly && styles.filterChipActive]}
+          onPress={() => setFilterTopOnly((v) => !v)}
+        >
+          <MaterialCommunityIcons name="trophy" size={18} color={filterTopOnly ? '#1e3a8a' : '#374151'} />
+          <Text style={[styles.filterText, filterTopOnly && styles.filterTextActive]}>Top</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Count Card */}
       <View style={styles.card}>
@@ -464,8 +496,8 @@ const adminStudents = () => {
       </View>
 
       {/* Student List */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Student List</Text>
+      <View style={[styles.card,{backgroundColor: palette.card, borderWidth:1, borderColor: palette.border}] }>
+        <Text style={[styles.cardTitle,{color: palette.text}]}>Student List</Text>
         <FlatList
           data={mergedList}
           keyExtractor={(item) => item.id}
@@ -500,6 +532,41 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     shadowRadius: 6,
     elevation: 3,
+  },
+  filtersRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  searchInput: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    color: '#111827',
+  },
+  filterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#e5e7eb',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  filterChipActive: {
+    backgroundColor: '#dbeafe',
+  },
+  filterText: {
+    color: '#374151',
+    fontWeight: '600',
+  },
+  filterTextActive: {
+    color: '#1e3a8a',
   },
   cardTitle: {
     fontSize: 22,

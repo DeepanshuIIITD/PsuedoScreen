@@ -1,9 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import RNPickerSelect from 'react-native-picker-select';
-import * as Animatable from 'react-native-animatable';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import React, { useMemo, useState } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import * as Animatable from 'react-native-animatable';
+import RNPickerSelect from 'react-native-picker-select';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 
@@ -27,6 +28,10 @@ const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov
 
 const adminStreak = () => {
   const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+  const palette = colorScheme === 'dark'
+    ? { bg:'#0b0f14', card:'#0f172a', text:'#e5e7eb', sub:'#94a3b8', border:'#1f2937' }
+    : { bg:'#f9fafb', card:'#ffffff', text:'#111827', sub:'#374151', border:'#e5e7eb' };
   const [isjoined, setJoined] = React.useState(null); 
   const [attendanceSubmitted, setAttendanceSubmitted] = React.useState(false); // new
   const [todayNote, setTodayNote] = React.useState("");
@@ -253,8 +258,8 @@ const renderYearlyReport = () => (
 
 
   return (
-    <ScrollView style={[styles.screen]} contentContainerStyle={{ paddingBottom: 24, paddingTop: insets.top }}>
-      <Text style={styles.title}> Today's Attendance </Text>
+    <ScrollView style={[styles.screen,{backgroundColor: palette.bg}]} contentContainerStyle={{ paddingBottom: insets.bottom + 24, paddingTop: insets.top }}>
+      <Text style={[styles.title,{color: palette.text}]}> Today's Attendance </Text>
 
       {/* Class Entry */}
       {!attendanceSubmitted && (
@@ -300,9 +305,9 @@ const renderYearlyReport = () => (
       {attendanceSubmitted && renderAttendanceConfirmation()}
 
       {/* Report Section */}
-      <View style={styles.card}>
-          <Text style={styles.cardTitle}>Report</Text>
-          <View style={styles.innerBox}>
+      <View style={[styles.card,{backgroundColor: palette.card, borderWidth:1, borderColor: palette.border}] }>
+          <Text style={[styles.cardTitle,{color: palette.text}]}>Report</Text>
+          <View style={[styles.innerBox,{backgroundColor: colorScheme==='dark' ? '#111827' : '#f3f4f6'}]}>
             <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
               <TouchableOpacity
                 style={[
@@ -328,15 +333,15 @@ const renderYearlyReport = () => (
         </View>
 
         {isReportView !== null && (
-          <View style={styles.card}>
+          <View style={[styles.card,{backgroundColor: palette.card, borderWidth:1, borderColor: palette.border}] }>
             {isReportView ? renderMonthlyReport() : renderYearlyReport()}
           </View>
         )}
 
         {/* Streak Graph (same as user) */}
-        <View style={styles.card}>
+        <View style={[styles.card,{backgroundColor: palette.card, borderWidth:1, borderColor: palette.border}] }>
           <View style={styles.streakHeader}>
-            <Text style={styles.cardTitle}>Streak</Text>
+            <Text style={[styles.cardTitle,{color: palette.text}]}>Streak</Text>
             <Animatable.View 
               animation="pulse" 
               easing="ease-out" 
@@ -346,7 +351,7 @@ const renderYearlyReport = () => (
               <MaterialCommunityIcons name="fire" size={32} color="#ff6b6b" />
             </Animatable.View>
           </View>
-          <Text style={styles.streakCounter}>🔥 20 Days</Text>
+          <Text style={[styles.streakCounter,{color: colorScheme==='dark' ? '#fca5a5' : '#ef4444'}]}>🔥 20 Days</Text>
 
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={{ flexDirection: "column" }}>

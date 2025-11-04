@@ -1,8 +1,10 @@
 import { useAuth } from '@/app/contexts/AuthContext';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import { useClass } from '../../../contexts/ClassContext';
 
 
@@ -15,6 +17,11 @@ const STATUS = {
 
 const AdminHome = () => {
   const { user, apiCall, logout } = useAuth();
+  const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+  const palette = colorScheme === 'dark'
+    ? { bg:'#0b0f14', card:'#0f172a', text:'#e5e7eb', sub:'#94a3b8', border:'#1f2937' }
+    : { bg:'#f9fafb', card:'#ffffff', text:'#111827', sub:'#374151', border:'#e5e7eb' };
   const {selectedClass } = useClass();
   // const { classId, className, classCode, email, phone } = useLocalSearchParams();
   const API = "https://streak-app-uxyv.onrender.com";
@@ -184,9 +191,12 @@ const AdminHome = () => {
 
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView 
+      style={[styles.container, { paddingTop: insets.top, backgroundColor: palette.bg }]}
+      contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+    >
       <View style={styles.headerContainer}>
-        <Text style={styles.title}>Hi, {user?.userName || 'Admin'}!</Text>
+        <Text style={[styles.title,{color: palette.text}]}>Hi, {user?.userName || 'Admin'}!</Text>
         <TouchableOpacity onPress={() => setMenuVisible(!menuVisible)}>
           <MaterialCommunityIcons name="account-circle" size={32} color="#2563eb" />
         </TouchableOpacity>
@@ -219,6 +229,22 @@ const AdminHome = () => {
         )}
       </View>
       
+      {/* Quick Stats */}
+      <View style={styles.statsRow}>
+        <View style={[styles.statChip, { backgroundColor: colorScheme==='dark' ? '#0b2a3a' : '#e0f2fe' }]}>
+          <Text style={[styles.statLabel,{color: palette.sub}]}>Class</Text>
+          <Text style={[styles.statValue,{color: palette.text}]}>{selectedClass.name?.slice(0, 14) || '—'}</Text>
+        </View>
+        <View style={[styles.statChip, { backgroundColor: colorScheme==='dark' ? '#0c2d1f' : '#dcfce7' }]}>
+          <Text style={[styles.statLabel,{color: palette.sub}]}>Best Streak</Text>
+          <Text style={[styles.statValue,{color: palette.text}]}>{bestStreak}</Text>
+        </View>
+        <View style={[styles.statChip, { backgroundColor: colorScheme==='dark' ? '#3b0b0b' : '#fee2e2' }]}>
+          <Text style={[styles.statLabel,{color: palette.sub}]}>Today Present</Text>
+          <Text style={[styles.statValue,{color: palette.text}]}>{todayStrength.present}</Text>
+        </View>
+      </View>
+
       {/* Welcome Box */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>{selectedClass.name}</Text>
@@ -234,33 +260,33 @@ const AdminHome = () => {
       </View>
 
       {/* Quick Summary Box */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Quick Summary</Text>
-        <View style={styles.innerBox}>
-          <Text style={styles.summaryText}>Best Streak: {bestStreak} days</Text>
+      <View style={[styles.card,{backgroundColor: palette.card, borderColor: palette.border, borderWidth: 1}] }>
+        <Text style={[styles.cardTitle,{color: palette.text}]}>Quick Summary</Text>
+        <View style={[styles.innerBox,{backgroundColor: colorScheme==='dark' ? '#111827' : '#f3f4f6'}]}>
+          <Text style={[styles.summaryText,{color: palette.text}]}>Best Streak: {bestStreak} days</Text>
 
-          <Text style={styles.summarySubTitle}>Current Week</Text>
-          <Text style={styles.summaryText}>
+          <Text style={[styles.summarySubTitle,{color: colorScheme==='dark' ? '#93c5fd' : '#2563eb'}]}>Current Week</Text>
+          <Text style={[styles.summaryText,{color: palette.text}] }>
             Present: {weekSummary.present} | Absent: {weekSummary.absent} | Other: {weekSummary.other}
           </Text>
 
-          <Text style={styles.summarySubTitle}>Total</Text>
-          <Text style={styles.summaryText}>
+          <Text style={[styles.summarySubTitle,{color: colorScheme==='dark' ? '#93c5fd' : '#2563eb'}]}>Total</Text>
+          <Text style={[styles.summaryText,{color: palette.text}] }>
             Present: {totalSummary.present} | Absent: {totalSummary.absent} | Other: {totalSummary.other}
           </Text>
 
-          <Text style={styles.summarySubTitle}>Percentages</Text>
-          <Text style={styles.summaryText}>
+          <Text style={[styles.summarySubTitle,{color: colorScheme==='dark' ? '#93c5fd' : '#2563eb'}]}>Percentages</Text>
+          <Text style={[styles.summaryText,{color: palette.text}] }>
             Present: {totalPercentages.present}% | Absent: {totalPercentages.absent}% | Other: {totalPercentages.other}%
           </Text>
         </View>
       </View>
 
       {/* Today's Summary */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Today's Summary</Text>
-        <View style={styles.innerBox}>
-          <Text style={styles.dateText}>{formattedDate}</Text>
+      <View style={[styles.card,{backgroundColor: palette.card, borderColor: palette.border, borderWidth: 1}] }>
+        <Text style={[styles.cardTitle,{color: palette.text}]}>Today's Summary</Text>
+        <View style={[styles.innerBox,{backgroundColor: colorScheme==='dark' ? '#111827' : '#f3f4f6'}]}>
+          <Text style={[styles.dateText,{color: palette.text}]}>{formattedDate}</Text>
           
           <Text style={styles.summarySubTitle}>Total</Text>
           <Text style={styles.summaryText}>
@@ -311,6 +337,28 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#111827",
     marginBottom: 20,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    gap: 8,
+  },
+  statChip: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#374151',
+    marginBottom: 6,
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
   },
   menuOverlay: {
     position: 'absolute',

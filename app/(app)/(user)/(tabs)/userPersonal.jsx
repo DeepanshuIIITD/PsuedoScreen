@@ -4,6 +4,7 @@ import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 
 import DateTimePicker from '@react-native-community/datetimepicker';
 import RNPickerSelect from 'react-native-picker-select';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 
 const userPersonal = () => {
@@ -24,6 +25,10 @@ const userPersonal = () => {
 
   // for safeareview testing purpose only
   const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+  const palette = colorScheme === 'dark'
+    ? { bg:'#0b0f14', card:'#0f172a', text:'#e5e7eb', sub:'#94a3b8', border:'#1f2937' }
+    : { bg:'#f9fafb', card:'#ffffff', text:'#111827', sub:'#374151', border:'#e5e7eb' };
 
 
   const pickerStyle = {
@@ -183,14 +188,14 @@ const renderYearlyReport = () => (
 
 
   return (
-    <View style={[styles.safeContainer, {paddingTop:insets.top}]}>
-    <ScrollView style={styles.screen}>
+    <View style={[styles.safeContainer, {paddingTop:insets.top, backgroundColor: palette.bg}]}>
+    <ScrollView style={[styles.screen,{backgroundColor: palette.bg}]} contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}>
       <Text style={styles.title}> Today's Attendance </Text>
 
       {/* Class Entry */}
       {!attendanceSubmitted && (
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Class Entry</Text>
+      <View style={[styles.card,{backgroundColor: palette.card, borderWidth:1, borderColor: palette.border}] }>
+        <Text style={[styles.cardTitle,{color: palette.text}]}>Class Entry</Text>
         <View style={styles.innerBox}>
           <Text style={styles.cardText}>Joined Today's Class ?</Text>
           <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
@@ -224,15 +229,15 @@ const renderYearlyReport = () => (
 
       {/* Show form or confirmation */}
       {!attendanceSubmitted && isjoined !== null && (
-        <View style={styles.card}>
+        <View style={[styles.card,{backgroundColor: palette.card, borderWidth:1, borderColor: palette.border}] }>
           {isjoined ? renderJoinedSummary() : renderExcuseForm()}
         </View>
       )}
       {attendanceSubmitted && renderAttendanceConfirmation()}
 
       {/* Report Section */}
-      <View style={styles.card}>
-          <Text style={styles.cardTitle}>Report</Text>
+      <View style={[styles.card,{backgroundColor: palette.card, borderWidth:1, borderColor: palette.border}] }>
+          <Text style={[styles.cardTitle,{color: palette.text}]}>Report</Text>
           <View style={styles.innerBox}>
             <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
               <TouchableOpacity
@@ -259,7 +264,7 @@ const renderYearlyReport = () => (
         </View>
 
         {isReportView !== null && (
-          <View style={styles.card}>
+          <View style={[styles.card,{backgroundColor: palette.card, borderWidth:1, borderColor: palette.border}] }>
             {isReportView ? renderMonthlyReport() : renderYearlyReport()}
           </View>
         )}

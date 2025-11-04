@@ -3,6 +3,7 @@
       //  
 
 
+import { useColorScheme } from '@/hooks/useColorScheme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -39,6 +40,24 @@ const months = [
 
 const UserHome = () => {
   const { user, logout } = useAuth();
+  const colorScheme = useColorScheme();
+  const palette = colorScheme === 'dark'
+    ? {
+        bg: '#0b0f14',
+        card: '#0f172a',
+        text: '#e5e7eb',
+        subtext: '#94a3b8',
+        border: '#1f2937',
+        menuBg: '#0f172a',
+      }
+    : {
+        bg: '#f9fafb',
+        card: '#ffffff',
+        text: '#111827',
+        subtext: '#374151',
+        border: '#e5e7eb',
+        menuBg: '#ffffff',
+      };
   const firstName = user?.firstName || user?.userName || "User";
   // Mock attendance data for UI demonstration
   const [attendanceData, setAttendanceData] = useState({
@@ -228,10 +247,10 @@ const getPercentages = (summary) => {
   
 
   return (
-    <View style={[styles.safeContainer,{paddingTop:insets.top} ]}>
+    <View style={[styles.safeContainer,{paddingTop:insets.top, backgroundColor: palette.bg} ]}>
       {/* header sepearate from scroll view */}
       <View style={styles.headerContainer}>
-      <Text style={styles.title}>👋 Hi, {firstName}!</Text>
+      <Text style={[styles.title,{color: palette.text}]}>👋 Hi, {firstName}!</Text>
       <TouchableOpacity onPress={() => setMenuVisible(!menuVisible)}>
         <MaterialCommunityIcons name="account-circle" size={32} color="#ff6b6b" />
       </TouchableOpacity>
@@ -243,13 +262,13 @@ const getPercentages = (summary) => {
             onPress={() => setMenuVisible(false)}
             activeOpacity={1}
           />
-          <View style={styles.menuContainer}>
+          <View style={[styles.menuContainer,{backgroundColor: palette.menuBg, borderColor: palette.border}] }>
             <TouchableOpacity 
               style={styles.menuItem} 
               onPress={() => handleEditProfile()}
             >
               <MaterialCommunityIcons name="account-edit" size={20} color="#374151" style={styles.menuIcon} />
-              <Text style={styles.menuItemText}>Edit Profile</Text>
+              <Text style={[styles.menuItemText,{color: palette.text}]}>Edit Profile</Text>
             </TouchableOpacity>
             <View style={styles.menuDivider} />
             <TouchableOpacity 
@@ -257,7 +276,7 @@ const getPercentages = (summary) => {
               onPress={() => handleAboutPage()}
             >
               <MaterialCommunityIcons name="information" size={20} color="#374151" style={styles.menuIcon} />
-              <Text style={styles.menuItemText}>About Application</Text>
+              <Text style={[styles.menuItemText,{color: palette.text}]}>About Application</Text>
             </TouchableOpacity>
             <View style={styles.menuDivider} />
             <TouchableOpacity 
@@ -271,7 +290,7 @@ const getPercentages = (summary) => {
         </>
       )}
     </View>
-    <ScrollView style={[styles.screen]}>
+    <ScrollView style={[styles.screen]} contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}>
       
       {/* <View style={flexDirection = 'row' }  >
         <MaterialCommunityIcons name='profile' size={32} color="#ff6b6b"/>
@@ -403,7 +422,7 @@ export default UserHome;
 const styles = StyleSheet.create({
   safeContainer:{
     flex: 1,
-    backgroundColor: "green",
+    backgroundColor: "#f9fafb",
   },
   screen: {
     flex: 1,
@@ -509,6 +528,8 @@ const styles = StyleSheet.create({
     padding: 16,
     position: "relative",
     backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
     zIndex: 1000,
   },
   menuOverlay: {
