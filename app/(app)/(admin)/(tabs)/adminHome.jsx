@@ -1,12 +1,12 @@
 import { useAuth } from '@/app/contexts/AuthContext';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useColorScheme } from '@/hooks/useColorScheme';
 import { useClass } from '../../../contexts/ClassContext';
-const API = "https://streak-app-uxyv.onrender.com";
+
 const USE_MOCK = true; // Toggle mocked admin APIs
 
 

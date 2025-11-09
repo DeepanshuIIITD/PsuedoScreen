@@ -10,6 +10,7 @@ import React, { useContext } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // importing login element
+import { API } from "@env";
 import { AuthContext } from '../contexts/AuthContext';
 
 console.log("Index file mounting");
@@ -24,19 +25,10 @@ const app = () => {
   // new claude suggestions
   const [isLoggingIn, setIsLoggingIn] = React.useState(false); // Add this
 
-  // login component
-  // const {login } = useContext(AuthContext);
-
   const { login, isLoading } = useContext(AuthContext); // Get isLoading
 
   
-
-  // Get your computer's IP address - CHANGE THIS TO YOUR ACTUAL IP
-  // const API_URL = 'http://192.168.29.152:5050';
-  // const {API} = Constants.expoConfig.extra;
-  const API = "https://streak-app-uxyv.onrender.com";
-  const USE_MOCK = true; // Toggle to use hardcoded mock API
-  // console.log(API);
+  const USE_MOCK = false; // Toggle to use hardcoded mock API
 
   //testing function
   const testServerConnection = async () => {

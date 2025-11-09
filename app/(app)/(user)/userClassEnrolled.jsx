@@ -1,10 +1,11 @@
 // import { apiCall } from '@/app/utils/apiHelper';
 import { useClass } from '@/app/contexts/ClassContext';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { API } from '@env';
 import { Link, router } from 'expo-router';
 import React, { useEffect } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useColorScheme } from '@/hooks/useColorScheme';
 import { useAuth } from '../../contexts/AuthContext'; // Adjust path as needed
 
 const UserClassEnrolled = () => {
@@ -18,14 +19,14 @@ const UserClassEnrolled = () => {
     // const authContext = useAuth();
     const { user, access_token } = useAuth(); // Get user and accessToken from auth context\
     const {apiCall} = useAuth();
-    const API_URL = 'https://streak-app-uxyv.onrender.com';
-    const USE_MOCK = true; // Toggle to mock class list API
+    // const API = 'https://streak-app-uxyv.onrender.com';
+    const USE_MOCK = false; // Toggle to mock class list API
 
     const fetchClasses = async () => {
         try {
             if (USE_MOCK) {
                 // Expected backend API (commented)
-                // GET `${API_URL}/user/classList`
+                // GET `${API}/user/classList`
                 // Headers: Authorization: Bearer <access_token>
                 // Response 200:
                 // [
@@ -57,7 +58,7 @@ const UserClassEnrolled = () => {
                 return;
             }
 
-            const data = await apiCall(`${API_URL}/user/classList`,{
+            const data = await apiCall(`${API}/user/classList`,{
                 method: 'GET' ,
                 headers: { "Content-Type": "application/json" },
         });

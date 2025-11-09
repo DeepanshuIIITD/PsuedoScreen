@@ -1,3 +1,4 @@
+import { API } from "@env";
 import { router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { createContext, useContext, useEffect, useState } from "react";
@@ -19,13 +20,13 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const API = "https://streak-app-uxyv.onrender.com";
-  const USE_MOCK = true; // Toggle to switch between mocked and real API
+  // const API = "https://streak-app-uxyv.onrender.com";
+  const USE_MOCK = false; // Toggle to switch between mocked and real API
 
   // Load stored auth data at startup
   useEffect(() => {
     loadStoredAuth();
-    // logout();       // force logout
+    logout();       // force logout
   }, []);
 
   const loadStoredAuth = async () => {
@@ -70,16 +71,16 @@ export const AuthProvider = ({ children }) => {
         // Response 401/400:
         // { "error": string }
 
-        const mockData = {
-          access_token: `mock_access_token_${role}_${username}`,
-          user: {
-            id: "u_123",
-            username,
-            firstName: "Demo",
-            lastName: role === "admin" ? "Admin" : "User",
-            email: `${username || 'demo'}@example.com`,
-          },
-        };
+        // const mockData = {
+        //   access_token: `mock_access_token_${role}_${username}`,
+        //   user: {
+        //     id: "u_123",
+        //     username,
+        //     firstName: "Demo",
+        //     lastName: role === "admin" ? "Admin" : "User",
+        //     email: `${username || 'demo'}@example.com`,
+        //   },
+        // };
 
         const userWithRole = { ...mockData.user, role };
 
@@ -122,7 +123,9 @@ export const AuthProvider = ({ children }) => {
         const logoutUrl = user?.role === "admin" ? "/admin/logout" : "/user/logout";
         await fetch(`${API}${logoutUrl}`, { method: "POST", credentials: "include" });
       }
-    } catch (error) {
+    }
+
+    catch (error) {
       console.error("Logout API call failed:", error);
     } finally {
       await Promise.all([
@@ -173,8 +176,8 @@ export const AuthProvider = ({ children }) => {
   // ✅ Unified API call wrapper (replaces apiHelper)
   const apiCall = async (url, options = {}) => {
     console.log("🔍 API Call to:", url);
-    console.log("🔍 Current access_token:", access_token ? "EXISTS" : "MISSING");
-    console.log("🔍 Current user:", user ? JSON.stringify(user, null, 2) : "MISSING");
+    // console.log("🔍 Current access_token:", access_token ? "EXISTS" : "MISSING");
+    // console.log("🔍 Current user:", user ? JSON.stringify(user, null, 2) : "MISSING");
 
     try {
       if (USE_MOCK) {
@@ -231,9 +234,10 @@ export const AuthProvider = ({ children }) => {
       }
 
       
-      console.log("AUTH CONTEXT FILE - Error occurs in api calling ");
-      console.log("user id - ",user.id, " Type of user_id is ", typeof(user.id));
+      // console.log("AUTH CONTEXT FILE - Error occurs in api calling ");
+      // console.log("user id - ",user.id, " Type of user_id is ", typeof(user.id));
       // console.log("Type of user_id is ", )
+      // console.log("Full Response ", response);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || `API Error: ${response.message}`);

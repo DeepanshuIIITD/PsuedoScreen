@@ -1,5 +1,5 @@
 // app/contexts/ClassContext.jsx
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useMemo, useState } from "react";
 
 
 console.log("Class Context file mounted");
@@ -35,13 +35,13 @@ export const ClassProvider = ({ children }) => {
     setAttendanceData({});
     };
 
-    const value = {
-    selectedClass,
-    selectClass,
-    clearClass,
-    attendanceData,
-    setAttendanceData,
-    };
+    const value = useMemo(() => ({
+      selectedClass,
+      selectClass,
+      clearClass,
+      attendanceData,
+      setAttendanceData,
+    }), [selectedClass, attendanceData]);
 
     console.log("Value from ClassContext - ",value);
 

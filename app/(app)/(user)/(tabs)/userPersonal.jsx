@@ -1,14 +1,17 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 // import { ScrollView } from 'react-native-gesture-handler';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { useClass } from '@/app/contexts/ClassContext';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import RNPickerSelect from 'react-native-picker-select';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { useAuth } from '@/app/contexts/AuthContext';
-import { useClass } from '@/app/contexts/ClassContext';
 const API = "https://streak-app-uxyv.onrender.com";
 const USE_MOCK = true; // Toggle mocked attendance APIs
+
+
+// post /user/markAttendance/${classid}. payload (status= 'present')
 
 
 const userPersonal = () => {

@@ -1,7 +1,9 @@
 
       // quick summary /user/myClasses/:id, token header=bearer walah
-      //  
+      //   LOG  Quick Summary  {"quick_summary": {"current_week_absent": 0, "current_week_not_marked": 0, "current_week_present": 0, "today_status": "Not marked", "total_absent": 0, "total_not_marked": 0, "total_present": 2}}
 
+      // /user/calendar/${classid}
+      //Calendar looks like this  {"calendar": [{"date": "2025-09-21", "status": "present"}, {"date": "2025-11-07", "status": "present"}], "class_id": 1, "user_id": 1}
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -13,8 +15,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // for importing class respective details
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useClass } from '@/app/contexts/ClassContext';
-const API = "https://streak-app-uxyv.onrender.com";
-const USE_MOCK = true; // Toggle mocked streak APIs
+import { API } from '@env';
+
+const USE_MOCK = false; // Toggle mocked streak APIs
 
 // Status codes for clarity
 // 0 = Absent, 1 = Present, 2 = Other
@@ -71,6 +74,15 @@ const UserHome = () => {
   // class comes from context above
   const [loading, setIsLoading] = useState(true);
   const [streak, setStreak] = useState(20);
+  const [bestStreak, setBestStreak] = useState(0);
+  const [todayStatus, setTodayStatus ] = useState("unmarked")
+  const [totalPresent, setTotalPresent ] = useState(0);
+  const [totalAbsent, setTotalAbsent] = useState();
+  const [totalUnMarked, setTotalUnMarked] = useState();
+  const [currentWeekPresent, setCurrentWeekPresent] = useState(0);
+  const [currentWeekAbsent, setCurrentWeekAbsent] = useState(0);
+  const [currentWeekUnMarked, setCurrentWeekUnMarked] = useState(0);
+
   console.log("USER HOME --- selected class is ", selectedClass);
 
   const year = 2025;
@@ -95,61 +107,45 @@ const UserHome = () => {
   });
 
   // summary part 
-  // Helper to calculate best streak
-const getBestStreak = (attendanceData) => {
-  let best = 0, current = 0;
-  const dates = Object.keys(attendanceData).sort(); // sorted YYYY-MM-DD
-  dates.forEach((date) => {
-    if (attendanceData[date] === STATUS.PRESENT) {
-      current++;
-      best = Math.max(best, current);
-    } else {
-      current = 0;
-    }
-  });
-  return best;
-};
 
 // Helper to calculate total summary
-const getTotalSummary = (attendanceData) => {
-  let present = 0, absent = 0, other = 0;
-  Object.values(attendanceData).forEach((status) => {
-    if (status === STATUS.PRESENT) present++;
-    else if (status === STATUS.ABSENT) absent++;
-    else if (status === STATUS.OTHER) other++;
+const getTotalSummary = async () => {
+  const resp = await apiCall(`${API}/user/quickSummary/${selectedClass.id}`,{
+    method: `GET`,
+    headers: { 'Content-Type': 'application/json' },
   });
-  return { present, absent, other };
+  console.log("Quick Summary ",resp);
+
+  const calendar = await apiCall(`${API}/user/calendar/${selectedClass.id}`,{
+    method: `GET`,
+    headers: { 'Content-Type': 'application/json' },
+    });
+
+    console.log("Calendar looks like this ", calendar);
+  
+  setTotalPresent(resp.quick_summary.total_present);
+  setTotalAbsent(resp.quick_summary.total_absent);
+  setTotalUnMarked(resp.quick_summary.total_not_marked);
+  setCurrentWeekPresent(resp.quick_summary.current_week_present);
+  setCurrentWeekAbsent(resp.quick_summary.current_week_absent);
+  setCurrentWeekUnMarked(resp.quick_summary.current_week_not_marked);
+  setTodayStatus(resp.quick_summary.today_status);
 };
 
-// Helper to calculate current week summary
-const getCurrentWeekSummary = (attendanceData) => {
-  let present = 0, absent = 0, other = 0;
-  const today = new Date();
-  const startOfWeek = new Date(today);
-  startOfWeek.setDate(today.getDate() - today.getDay() + 1); // Monday
-
-  Object.entries(attendanceData).forEach(([date, status]) => {
-    const d = new Date(date);
-    if (d >= startOfWeek && d <= today) {
-      if (status === STATUS.PRESENT) present++;
-      else if (status === STATUS.ABSENT) absent++;
-      else if (status === STATUS.OTHER) other++;
-    }
-  });
-
-    return { present, absent, other };
-  };
 
 // Helper for percentages
-const getPercentages = (summary) => {
-  const total = summary.present + summary.absent + summary.other;
+const getPercentages = async () => {
+  const total = totalPresent + totalAbsent + totalUnMarked;
   if (total === 0) return { present: 0, absent: 0, other: 0 };
 
+  
+
   return {
-    present: ((summary.present / total) * 100).toFixed(1),
-    absent: ((summary.absent / total) * 100).toFixed(1),
-    other: ((summary.other / total) * 100).toFixed(1),
+    present: ((totalPresent / total) * 100).toFixed(1),
+    absent: ((totalAbsent / total) * 100).toFixed(1),
+    other: ((totalUnMarked / total) * 100).toFixed(1),
     };
+
   };
 
 
@@ -162,43 +158,40 @@ const getPercentages = (summary) => {
     }
   });
 
-  // 🔹 Fetch streak from API (mocked) and mark ready
+  // 🔹 Fetch streak numbers without calling APIs during render
   useEffect(() => {
     const run = async () => {
       if (!selectedClass) return;
       try {
-        // Load attendance for this class (mocked)
         if (USE_MOCK) {
-          // Expected backend API (commented)
-          // GET `${API}/user/attendance?classId=<id>&year=2025`
-          // Response 200: { "attendance": { "YYYY-MM-DD": 0|1|2 } }
-          const mockAttendance = {
-            "2025-01-01": STATUS.PRESENT,
-            "2025-01-02": STATUS.PRESENT,
-            "2025-01-03": STATUS.ABSENT,
-            "2025-01-04": STATUS.PRESENT,
-          };
-          setAttendanceData(prev => ({ ...mockAttendance, ...prev }));
-        }
-        if (USE_MOCK) {
-          // Expected backend API (commented)
-          // GET `${API}/user/streak?classId=<id>`
-          // Response 200:
-          // { "streak": number, "lastCheckIn": ISOString }
-          const data = { streak: 20, lastCheckIn: new Date().toISOString() };
-          setStreak(data.streak);
+          // Local compute for best streak
+          setBestStreak(getBestStreak(attendanceData));
+          // Example mocked current streak
+          setStreak(getBestStreak(attendanceData));
         } else {
-          const data = await apiCall(`${API}/user/streak?classId=${selectedClass.id}`, { method: 'GET' });
-          setStreak(data?.streak ?? 0);
+          // Best streak for selected class
+          const resp = await apiCall(`${API}/user/streak/${selectedClass.id}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+          });
+          console.log(resp);
+          // Handle response shape: number or {streak:number}
+          // const best = typeof resp === 'number' ? resp : (resp?.streak ?? 0);
+          const best = resp.bestStreak;
+          const current = resp.currentStreak;
+          setBestStreak(best);
+          setStreak(current);
         }
       } catch (e) {
+        setBestStreak(0);
         setStreak(0);
       } finally {
         setIsLoading(false);
       }
     };
     run();
-  }, [selectedClass]);
+    // also recompute when attendance map changes in mock mode
+  }, [selectedClass, attendanceData]);
 
   // no helper function for date keys; use ISO local-adjusted inline where needed
 
@@ -312,23 +305,23 @@ const getPercentages = (summary) => {
         <Text style={styles.cardTitle}>Quick Summary</Text>
         <View style={styles.innerBox}>
           {(() => {
-            const bestStreak = getBestStreak(attendanceData);
-            const totalSummary = getTotalSummary(attendanceData);
-            const weekSummary = getCurrentWeekSummary(attendanceData);
-            const percentages = getPercentages(totalSummary);
+            const bestStreakValue = bestStreak;
+            const totalSummary = getTotalSummary();
+            // const weekSummary = getCurrentWeekSummary(attendanceData);
+            const percentages = getPercentages();
 
             return (
               <>
-                <Text style={styles.summaryText}>🔥 Best Streak: {bestStreak} days</Text>
+                <Text style={styles.summaryText}>🔥 Best Streak: {bestStreakValue} days</Text>
 
                 <Text style={styles.summarySubTitle}>📅 Current Week</Text>
                 <Text style={styles.summaryText}>
-                  Present: {weekSummary.present} | Absent: {weekSummary.absent} | Other: {weekSummary.other}
+                  Present: {currentWeekPresent} | Absent: {currentWeekAbsent} | Other: {currentWeekUnMarked}
                 </Text>
 
                 <Text style={styles.summarySubTitle}>📊 Total</Text>
                 <Text style={styles.summaryText}>
-                  Present: {totalSummary.present} | Absent: {totalSummary.absent} | Other: {totalSummary.other}
+                  Present: {totalPresent} | Absent: {totalAbsent} | Other: {totalUnMarked}
                 </Text>
 
                 <Text style={styles.summarySubTitle}>📈 Percentages</Text>
