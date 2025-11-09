@@ -16,26 +16,31 @@ export const useClass = () => {
 
 export const ClassProvider = ({ children }) => {
     const [selectedClass, setSelectedClass] = useState(null);
+    const [attendanceData, setAttendanceData] = useState({}); // YYYY-MM-DD -> STATUS
 
     const selectClass = (classData) => {
     console.log("Setting selected class:", classData);
     setSelectedClass({
-        id: classData.ID,
-        name: classData.Name,
-        code: classData.ClassCode,
-        email: classData.Email,
-        phone: classData.Phone,
+        id: classData.ID || classData.id,
+        name: classData.Name || classData.name || classData.title,
+        code: classData.ClassCode || classData.class_code || classData.code,
+        email: classData.Email || classData.email,
+        phone: classData.Phone || classData.phone,
     });
+    setAttendanceData({}); // reset when class changes
     };
 
     const clearClass = () => {
     setSelectedClass(null);
+    setAttendanceData({});
     };
 
     const value = {
     selectedClass,
     selectClass,
     clearClass,
+    attendanceData,
+    setAttendanceData,
     };
 
     console.log("Value from ClassContext - ",value);

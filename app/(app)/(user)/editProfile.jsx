@@ -1,3 +1,5 @@
+  const API = "https://streak-app-uxyv.onrender.com";
+  const USE_MOCK = true; // Toggle mocked profile update
 import { useAuth } from '@/app/contexts/AuthContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -6,7 +8,7 @@ import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const EditProfile = () => {
-  const { user } = useAuth();
+  const { user, apiCall } = useAuth();
   const insets = useSafeAreaInsets();
   
   const [firstName, setFirstName] = useState(user?.firstName || '');
@@ -22,22 +24,29 @@ const EditProfile = () => {
     }
 
     setIsSaving(true);
-    
-    // TODO: Replace with actual API call when backend is ready
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      if (USE_MOCK) {
+        // Expected backend API (commented)
+        // PUT `${API}/user/profile`
+        // Body:
+        // { "firstName": string, "lastName": string, "email"?: string, "phone"?: string }
+        // Response 200:
+        // { "user": { "id": string, "firstName": string, "lastName": string, "email": string, "phone": string } }
+        await new Promise(res => setTimeout(res, 500));
+        Alert.alert("Success", "Profile updated successfully!", [ { text: "OK", onPress: () => router.back() } ]);
+      } else {
+        await apiCall(`${API}/user/profile`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ firstName, lastName, email, phone })
+        });
+        Alert.alert("Success", "Profile updated successfully!", [ { text: "OK", onPress: () => router.back() } ]);
+      }
+    } catch (e) {
+      Alert.alert("Error", e.message || 'Failed to update profile');
+    } finally {
       setIsSaving(false);
-      Alert.alert(
-        "Success",
-        "Profile updated successfully!",
-        [
-          {
-            text: "OK",
-            onPress: () => router.back()
-          }
-        ]
-      );
-    }, 1000);
+    }
   };
 
   return (

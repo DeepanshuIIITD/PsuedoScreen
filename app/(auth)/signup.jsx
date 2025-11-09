@@ -34,6 +34,7 @@ const Signup = () => {
   const insets = useSafeAreaInsets();
 
   const API_URL = 'https://streak-app-uxyv.onrender.com';
+  const USE_MOCK = true; // Toggle mocked APIs for OTP + Signup
 
   // Timer effect for resend functionality
   React.useEffect(() => {
@@ -63,29 +64,37 @@ const Signup = () => {
 
     try {
       console.log('Sending OTP to mobile:', mobile);
-
-      const response = await fetch(`${API_URL}/user/sendOTP`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          phone: mobile,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
+      if (USE_MOCK) {
+        // Expected backend API (commented)
+        // Request: POST `${API_URL}/user/sendOTP`
+        // Body:
+        // { "phone": string }
+        // Response 200:
+        // { "success": true, "delivery": "whatsapp" | "sms" }
+        // Response 400:
+        // { "error": string }
+        const data = { success: true, delivery: 'sms' };
         setOtpSent(true);
         alert("OTP sent successfully! Check your WhatsApp/SMS.");
-        console.log('OTP sent successfully:', data);
-        
-        // Start 2-minute timer for resend
+        console.log('OTP sent successfully (mock):', data);
         setResendTimer(120);
         setCanResend(false);
       } else {
-        throw new Error(data.error || 'Failed to send OTP');
+        const response = await fetch(`${API_URL}/user/sendOTP`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: mobile }),
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setOtpSent(true);
+          alert("OTP sent successfully! Check your WhatsApp/SMS.");
+          console.log('OTP sent successfully:', data);
+          setResendTimer(120);
+          setCanResend(false);
+        } else {
+          throw new Error(data.error || 'Failed to send OTP');
+        }
       }
     } catch (error) {
       console.error('OTP sending error:', error);
@@ -124,25 +133,30 @@ const Signup = () => {
 
     try {
       console.log('Verifying OTP...');
-      
-      const otpVerifyResponse = await fetch(`${API_URL}/user/verifyOTP`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          phone: mobile,
-          otp: otp,
-        }),
-      });
-
-      const otpVerifyData = await otpVerifyResponse.json();
-
-      if (!otpVerifyResponse.ok) {
-        throw new Error(otpVerifyData.error || 'Invalid OTP');
+      if (USE_MOCK) {
+        // Expected backend API (commented)
+        // Request: POST `${API_URL}/user/verifyOTP`
+        // Body:
+        // { "phone": string, "otp": string }
+        // Response 200:
+        // { "valid": true }
+        // Response 400:
+        // { "error": string }
+        const otpVerifyData = { valid: otp === '123456' || otp?.length === 6 };
+        if (!otpVerifyData.valid) throw new Error('Invalid OTP');
+        console.log('OTP verified successfully (mock), proceeding with signup...');
+      } else {
+        const otpVerifyResponse = await fetch(`${API_URL}/user/verifyOTP`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: mobile, otp: otp }),
+        });
+        const otpVerifyData = await otpVerifyResponse.json();
+        if (!otpVerifyResponse.ok) {
+          throw new Error(otpVerifyData.error || 'Invalid OTP');
+        }
+        console.log('OTP verified successfully, proceeding with signup...');
       }
-
-      console.log('OTP verified successfully, proceeding with signup...');
 
       const signupData = {
         userName: userName,
@@ -154,25 +168,46 @@ const Signup = () => {
         password: password,
         otp: otp,
       };
-      
-      const response = await fetch(`${API_URL}/${role}/signUp`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(signupData)
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Server error: ${response.status}`);
+      if (USE_MOCK) {
+        // Expected backend API (commented)
+        // Request: POST `${API_URL}/${role}/signUp` (role in ['user','admin'])
+        // Body:
+        // {
+        //   "userName": string,
+        //   "firstName": string,
+        //   "lastName": string,
+        //   "email": string,
+        //   "phone": string,
+        //   "dob": "YYYY-MM-DD",
+        //   "password": string,
+        //   "otp": string
+        // }
+        // Response 201:
+        // { "user": { "id": string, "username": string }, "message": string }
+        // Response 400:
+        // { "error": string }
+        const data = {
+          user: { id: 'u_456', username: userName },
+          message: 'created',
+        };
+        console.log('Signup successful (mock):', data);
+        alert(`Signup successful! Welcome ${data.user.username}`);
+        router.replace("/(auth)/index");
+      } else {
+        const response = await fetch(`${API_URL}/${role}/signUp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(signupData)
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || `Server error: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log('Signup successful:', data);
+        alert(`Signup successful! Welcome ${data.user.username}`);
+        router.replace("/(auth)/index");
       }
-      
-      const data = await response.json();
-      console.log('Signup successful:', data);
-      
-      alert(`Signup successful! Welcome ${data.user.username}`);
-      router.replace("/(auth)/index");
     } catch (error) {
       console.error('Signup error:', error);
       alert(`Signup failed: ${error.message}`);

@@ -345,6 +345,7 @@ const AdminClassSelector = () => {
   const { apiCall,user,access_token } = useAuth();
   const { selectClass } = useClass();
   const API = "https://streak-app-uxyv.onrender.com";
+  const USE_MOCK = true; // Toggle mocked class list
   
   const [classes, setClasses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -360,21 +361,30 @@ const AdminClassSelector = () => {
     try {
       setIsLoading(true);
       setError(null);
-
-      const response = await apiCall(`${API}/admin/classList`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      });
-
-      console.log("Class Details response:", response);
-
-      // Handle different response structures
-      if (response && response.classList) {
-        setClasses(response.classList);
-      } else if (Array.isArray(response)) {
-        setClasses(response);
+      if (USE_MOCK) {
+        // Expected backend API (commented)
+        // GET `${API}/admin/classList`
+        // Headers: Authorization: Bearer <access_token>
+        // Response 200:
+        // [ { "ID": string, "Name": string, "ClassCode": string, "Email": string, "Phone": string, "CreatedAt": ISOString } ]
+        const mock = [
+          { ID: 'c_101', Name: 'Math 101', ClassCode: 'MATH101', Email: 'math@class.com', Phone: '9999999999', CreatedAt: '2025-01-01' },
+          { ID: 'c_202', Name: 'Physics', ClassCode: 'PHY202', Email: 'phy@class.com', Phone: '8888888888', CreatedAt: '2025-02-01' },
+        ];
+        setClasses(mock);
       } else {
-        setClasses([]);
+        const response = await apiCall(`${API}/admin/classList`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
+        console.log("Class Details response:", response);
+        if (response && response.classList) {
+          setClasses(response.classList);
+        } else if (Array.isArray(response)) {
+          setClasses(response);
+        } else {
+          setClasses([]);
+        }
       }
     } catch (err) {
       console.error("Error fetching classes:", err);

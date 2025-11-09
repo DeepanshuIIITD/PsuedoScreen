@@ -171,6 +171,8 @@ const renderJoinedSummary = () => (
           alert("⚠️ Please select the time spent before submitting!");
           return;
         }
+        const todayKey = new Date(Date.now() - (new Date()).getTimezoneOffset()*60000).toISOString().slice(0,10);
+        setAttendanceData(prev => ({ ...prev, [todayKey]: STATUS.PRESENT }));
         setAttendanceSubmitted(true);
       }}
     >
@@ -205,6 +207,8 @@ const renderExcuseForm = () => (
           alert("⚠️ Please select a reason before submitting!");
           return;
         }
+        const todayKey = new Date(Date.now() - (new Date()).getTimezoneOffset()*60000).toISOString().slice(0,10);
+        setAttendanceData(prev => ({ ...prev, [todayKey]: STATUS.ABSENT }));
         setAttendanceSubmitted(true);
       }}
     >
@@ -357,7 +361,7 @@ const renderYearlyReport = () => (
             <View style={{ flexDirection: "column" }}>
               {/* Month Row */}
               <View style={styles.monthRow}>
-                <View style={{ width: 36 }} />
+                <View style={{ width: 46 }} />
                 {weeks.map((_, weekIndex) => {
                   const marker = monthMarkers.find(m => m.weekIndex === weekIndex);
                   return (
@@ -372,7 +376,7 @@ const renderYearlyReport = () => (
 
               <View style={{ flexDirection: "row" }}>
                 {/* Weekday labels */}
-                <View style={{ marginRight: 6 }}>
+                <View style={{ marginRight: 6, width: 46 }}>
                   {weekdays.map((day) => (
                     <View key={day} style={{ height: 36, justifyContent: "center" }}>
                       <Text style={styles.weekdayText}>{day}</Text>

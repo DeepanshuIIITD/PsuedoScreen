@@ -13,6 +13,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // for importing class respective details
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useClass } from '@/app/contexts/ClassContext';
+const API = "https://streak-app-uxyv.onrender.com";
+const USE_MOCK = true; // Toggle mocked streak APIs
 
 // Status codes for clarity
 // 0 = Absent, 1 = Present, 2 = Other
@@ -39,7 +41,7 @@ const months = [
 ];
 
 const UserHome = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, apiCall } = useAuth();
   const colorScheme = useColorScheme();
   const palette = colorScheme === 'dark'
     ? {
@@ -59,27 +61,16 @@ const UserHome = () => {
         menuBg: '#ffffff',
       };
   const firstName = user?.firstName || user?.userName || "User";
-  // Mock attendance data for UI demonstration
-  const [attendanceData, setAttendanceData] = useState({
-    "2025-01-01": STATUS.PRESENT,
-    "2025-01-02": STATUS.PRESENT,
-    "2025-01-03": STATUS.ABSENT,
-    "2025-01-04": STATUS.PRESENT,
-    "2025-01-05": STATUS.OTHER,
-    "2025-01-06": STATUS.PRESENT,
-    "2025-01-07": STATUS.PRESENT,
-    "2025-01-08": STATUS.PRESENT,
-    "2025-01-09": STATUS.PRESENT,
-    "2025-01-10": STATUS.ABSENT,
-  }); 
+  // Attendance from context so updates reflect across screens
+  const { selectedClass, attendanceData, setAttendanceData } = useClass();
   // for safeareview testing purpose only
   const insets = useSafeAreaInsets();
 
   // for adding profile icon logic 
   const [menuVisible, setMenuVisible] = useState(false);
-  // for class specific information
-  const {selectedClass} = useClass();
+  // class comes from context above
   const [loading, setIsLoading] = useState(true);
+  const [streak, setStreak] = useState(20);
   console.log("USER HOME --- selected class is ", selectedClass);
 
   const year = 2025;
@@ -171,36 +162,49 @@ const getPercentages = (summary) => {
     }
   });
 
-  // 🔹 Simulated backend fetch
+  // 🔹 Fetch streak from API (mocked) and mark ready
   useEffect(() => {
-    // Example: Later replace this with API call
-    // const fetchData = async () => {
-    //   // Simulated data: key = YYYY-MM-DD, value = status
-    //   const data = {
-    //     "2025-01-01": STATUS.PRESENT,
-    //     "2025-01-02": STATUS.ABSENT,
-    //     "2025-01-03": STATUS.OTHER,
-    //     "2025-01-04": STATUS.PRESENT,
-    //   };
-    //   setAttendanceData(data);
-    // };
-    // fetchData();
-    if (selectedClass) {
-    setIsLoading(false); // Just mark ready once class is set
-  }
+    const run = async () => {
+      if (!selectedClass) return;
+      try {
+        // Load attendance for this class (mocked)
+        if (USE_MOCK) {
+          // Expected backend API (commented)
+          // GET `${API}/user/attendance?classId=<id>&year=2025`
+          // Response 200: { "attendance": { "YYYY-MM-DD": 0|1|2 } }
+          const mockAttendance = {
+            "2025-01-01": STATUS.PRESENT,
+            "2025-01-02": STATUS.PRESENT,
+            "2025-01-03": STATUS.ABSENT,
+            "2025-01-04": STATUS.PRESENT,
+          };
+          setAttendanceData(prev => ({ ...mockAttendance, ...prev }));
+        }
+        if (USE_MOCK) {
+          // Expected backend API (commented)
+          // GET `${API}/user/streak?classId=<id>`
+          // Response 200:
+          // { "streak": number, "lastCheckIn": ISOString }
+          const data = { streak: 20, lastCheckIn: new Date().toISOString() };
+          setStreak(data.streak);
+        } else {
+          const data = await apiCall(`${API}/user/streak?classId=${selectedClass.id}`, { method: 'GET' });
+          setStreak(data?.streak ?? 0);
+        }
+      } catch (e) {
+        setStreak(0);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    run();
   }, [selectedClass]);
 
-  // Helper to format date keys in local time to avoid UTC shift
-  const formatDate = (date) => {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`; // YYYY-MM-DD
-  };
+  // no helper function for date keys; use ISO local-adjusted inline where needed
 
   // Handle tap on a cell
   const handleDayPress = (date) => {
-    const key = formatDate(date);
+    const key = new Date(date.getTime() - date.getTimezoneOffset()*60000).toISOString().slice(0,10);
     const status = attendanceData[key] ?? null;
 
     let message;
@@ -300,7 +304,7 @@ const getPercentages = (summary) => {
 
       {/* Welcome Box */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Welcome to {selectedClass.name}</Text>
+        <Text style={styles.cardTitle}>Welcome to {selectedClass?.name || '—'}</Text>
       </View>
 
       {/* Quick Summary */}
@@ -351,14 +355,14 @@ const getPercentages = (summary) => {
             <MaterialCommunityIcons name="fire" size={32} color="#ff6b6b" />
           </Animatable.View>
         </View>
-        <Text style={styles.streakCounter}>🔥 20 Days</Text>
+        <Text style={styles.streakCounter}>🔥 {streak} Days</Text>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={{ flexDirection: "column" }}>
             
             {/* Month Row */}
             <View style={styles.monthRow}>
-              <View style={{ width: 36 }} /> 
+              <View style={{ width: 46 }} /> 
               {weeks.map((_, weekIndex) => {
                 const marker = monthMarkers.find(m => m.weekIndex === weekIndex);
                 return (
@@ -373,7 +377,7 @@ const getPercentages = (summary) => {
 
             <View style={{ flexDirection: "row" }}>
               {/* Weekday labels */}
-              <View style={{ marginRight: 6 }}>
+              <View style={{ marginRight: 6, width: 46 }}>
                 {weekdays.map((day) => (
                   <View key={day} style={{ height: 36, justifyContent: "center" }}>
                     <Text style={styles.weekdayText}>{day}</Text>
@@ -386,7 +390,7 @@ const getPercentages = (summary) => {
                 {weeks.map((week, weekIndex) => (
                   <View key={weekIndex} style={styles.weekColumn}>
                     {week.map((date, dayIndex) => {
-                      const key = formatDate(date);
+                      const key = new Date(date.getTime() - date.getTimezoneOffset()*60000).toISOString().slice(0,10);
                       const status = attendanceData[key] ?? null;
                       return (
                         <Pressable

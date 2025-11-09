@@ -35,38 +35,42 @@ const app = () => {
   // const API_URL = 'http://192.168.29.152:5050';
   // const {API} = Constants.expoConfig.extra;
   const API = "https://streak-app-uxyv.onrender.com";
+  const USE_MOCK = true; // Toggle to use hardcoded mock API
   // console.log(API);
 
   //testing function
   const testServerConnection = async () => {
     try {
       console.log('Testing connection to:', API);
-      
+      if (USE_MOCK) {
+        // Expected backend API (commented)
+        // Request: GET `${API}/root/health-check`
+        // Response 200:
+        // { "status": "ok", "uptime": number }
+        const data = { status: 'ok', uptime: 12345 };
+        console.log('Server connection successful (mock):', data);
+        alert(`Server connection successful! Status: ${data.status}`);
+        return true;
+      }
+
       const response = await fetch(`${API}/root/health-check`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-        // Add timeout
         timeout: 10000,
       });
-      
       if (!response.ok) {
         throw new Error(`Server responded with status: ${response.status}`);
       }
-      
       const data = await response.json();
       console.log('Server connection successful:', data);
-      
-      // You can show an alert or update state to indicate success
       alert(`Server connection successful! Status: ${data.status}`);
-      
       return true;
     } catch (error) {
       console.error('Connection test failed:', error);
-      
       // Show detailed error information
-      alert(`Cannot connect to server. Error: ${error.message}\n\nMake sure:\n1. Server is running on ${API_URL}\n2. Your phone and computer are on the same WiFi\n3. Firewall allows connections on port 5050`);
+      alert(`Cannot connect to server. Error: ${error.message}\n\nMake sure:\n1. Server is running on ${API}\n2. Your phone and computer are on the same WiFi\n3. Firewall allows connections on correct port`);
       
       return false;
     }

@@ -19,23 +19,53 @@ const UserClassEnrolled = () => {
     const { user, access_token } = useAuth(); // Get user and accessToken from auth context\
     const {apiCall} = useAuth();
     const API_URL = 'https://streak-app-uxyv.onrender.com';
+    const USE_MOCK = true; // Toggle to mock class list API
 
     const fetchClasses = async () => {
         try {
+            if (USE_MOCK) {
+                // Expected backend API (commented)
+                // GET `${API_URL}/user/classList`
+                // Headers: Authorization: Bearer <access_token>
+                // Response 200:
+                // [
+                //   {
+                //     "id": string,            // or class_id
+                //     "name": string,          // or class_name/title
+                //     "class_code": string,    // or code
+                //     "email": string,
+                //     "phone": string,
+                //     "created_at": ISODate,
+                //     "joined_at": ISODate,
+                //     "created_by_admin_id": string
+                //   }
+                // ]
+                const mock = [
+                    { id: 'c_101', name: 'Math 101', class_code: 'MATH101', email: 'math@class.com', phone: '9999999999', created_at: '2025-01-01', joined_at: '2025-02-01', created_by_admin_id: 'a_1' },
+                    { id: 'c_202', name: 'Physics Basics', class_code: 'PHY202', email: 'phy@class.com', phone: '8888888888', created_at: '2025-01-10', joined_at: '2025-02-05', created_by_admin_id: 'a_1' },
+                ];
+                setClasses(mock.map(x => ({
+                    id: x.id,
+                    title: x.name,
+                    class_code: x.class_code,
+                    phone: x.phone,
+                    email: x.email,
+                    created_at: x.created_at,
+                    joined_at: x.joined_at,
+                    created_by_admin_id: x.created_by_admin_id,
+                })));
+                return;
+            }
 
             const data = await apiCall(`${API_URL}/user/classList`,{
                 method: 'GET' ,
                 headers: { "Content-Type": "application/json" },
-                // authContext,
-                // useAuth,
         });
 
-            
             console.log('API response data:', data);
 
             // Handle different response structures
             let classesData = [];
-            
             if (Array.isArray(data)) {
                 classesData = data;
             } else if (data.classes && Array.isArray(data.classes)) {
@@ -46,13 +76,10 @@ const UserClassEnrolled = () => {
                 classesData = data.courses;
             } else {
                 console.log("Unexpected data structure:", data);
-                // If data structure is unexpected, set empty array
                 classesData = [];
             }
-            
-            console.log('Processed classes data:', classesData);
-            
-            // Transform the API response to match your expected format
+
+            // Transform to UI format
             const transformedClasses = classesData.map(classItem => ({
                 id: classItem.class_id || classItem.id,
                 title: classItem.class_name || classItem.name || classItem.title || 'Untitled Class',
@@ -63,8 +90,6 @@ const UserClassEnrolled = () => {
                 joined_at: classItem.joined_at,
                 created_by_admin_id: classItem.created_by_admin_id
             }));
-            
-            console.log('Transformed classes:', transformedClasses);
             setClasses(transformedClasses);
             
         } catch (err) {
@@ -109,7 +134,7 @@ const UserClassEnrolled = () => {
         selectClass(classItem);
         console.log("From CLASS ENROLLED You pressed this CLASS ");
         console.log("Class details ", classItem);
-        router.push("/(user)/(tabs)/userHome");
+        router.push("/(app)/(user)/(tabs)/userHome");
     };
 
     if (loading) {

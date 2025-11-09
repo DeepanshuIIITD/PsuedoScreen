@@ -6,6 +6,8 @@ import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, Touc
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useClass } from '../../../contexts/ClassContext';
+const API = "https://streak-app-uxyv.onrender.com";
+const USE_MOCK = true; // Toggle mocked admin APIs
 
 
 
@@ -50,6 +52,14 @@ const AdminHome = () => {
     try {
       setIsLoading(true);
       
+      // Expected backend APIs (commented)
+      // GET `${API}/admin/class/${selectedClass.id}/attendance?range=today|week|month`
+      // Response:
+      // { "attendance": { "YYYY-MM-DD": 0|1|2, ... } }
+      // GET `${API}/admin/class/${selectedClass.id}/analytics`
+      // Response:
+      // { "bestStreak": number, "totals": { "present": number, "absent": number, "other": number } }
+
       // Mock data for frontend demonstration
       const mockAttendanceData = {
         "2025-01-01": STATUS.PRESENT,

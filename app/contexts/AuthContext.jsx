@@ -20,6 +20,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const API = "https://streak-app-uxyv.onrender.com";
+  const USE_MOCK = true; // Toggle to switch between mocked and real API
 
   // Load stored auth data at startup
   useEffect(() => {
@@ -47,52 +48,64 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (role, username, password) => {
     try {
+      if (USE_MOCK) {
+        // Expected backend API (commented)
+        // Request: POST `${API}${role === 'admin' ? '/admin/signIn' : '/user/signIn'}`
+        // Body:
+        // {
+        //   "userName": string,
+        //   "password": string
+        // }
+        // Response 200:
+        // {
+        //   "access_token": string,
+        //   "user": {
+        //     "id": string,
+        //     "username": string,
+        //     "firstName": string,
+        //     "lastName": string,
+        //     "email": string
+        //   }
+        // }
+        // Response 401/400:
+        // { "error": string }
+
+        const mockData = {
+          access_token: `mock_access_token_${role}_${username}`,
+          user: {
+            id: "u_123",
+            username,
+            firstName: "Demo",
+            lastName: role === "admin" ? "Admin" : "User",
+            email: `${username || 'demo'}@example.com`,
+          },
+        };
+
+        const userWithRole = { ...mockData.user, role };
+
+        await SecureStore.setItemAsync("access_token", mockData.access_token);
+        setAccessToken(mockData.access_token);
+        await SecureStore.setItemAsync("user", JSON.stringify(userWithRole));
+        setUser(userWithRole);
+        return { success: true };
+      }
+
       const url = role === "admin" ? "/admin/signIn" : "/user/signIn";
       const response = await fetch(`${API}${url}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userName: username, password }),
-        credentials: "include", // IMPORTANT for cookies (refresh token)
+        credentials: "include",
       });
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Login failed");
 
-      console.log("✅ Login Response Status:", response.status);
-      console.log("✅ Login Data:", JSON.stringify(data, null, 2));
-      console.log("✅ User Object:", JSON.stringify(data.user, null, 2));
-      console.log("✅ Access Token:", data.access_token ? "EXISTS" : "MISSING");
-
-
-      // const userWithRole = {
-      //   ...data.user,
-      //   role: role,
-      // };
-
-      // if (data.access_token !== access_token) {
-      //   await SecureStore.setItemAsync("access_token", data.access_token);
-      //   setAccessToken(data.access_token);
-      // }
-
-      // if (JSON.stringify(data) !== JSON.stringify(user)) {
-      //   await SecureStore.setItemAsync("user", JSON.stringify(data));
-      //   setUser(data);
-      // }
-      const userWithRole = {
-        ...data.user,  // Only spread the user object
-        role: role,
-      };
-
-      console.log("✅ User with Role (clean):", JSON.stringify(userWithRole, null, 2));
-
-      // Store access token
+      const userWithRole = { ...data.user, role };
       await SecureStore.setItemAsync("access_token", data.access_token);
       setAccessToken(data.access_token);
-
-      // Store only the user object
       await SecureStore.setItemAsync("user", JSON.stringify(userWithRole));
       setUser(userWithRole);
-
       return { success: true };
     } catch (err) {
       console.error("Login failed:", err);
@@ -102,12 +115,13 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      // Call the appropriate logout endpoint based on user role
-      const logoutUrl = user?.role === "admin" ? "/admin/logout" : "/user/logout";
-      await fetch(`${API}${logoutUrl}`, {
-        method: "POST",
-        credentials: "include",
-      });
+      if (!USE_MOCK) {
+        // Expected backend API (commented)
+        // Request: POST `${API}${user?.role === 'admin' ? '/admin/logout' : '/user/logout'}`
+        // Headers/Cookies: includes refresh token cookie
+        const logoutUrl = user?.role === "admin" ? "/admin/logout" : "/user/logout";
+        await fetch(`${API}${logoutUrl}`, { method: "POST", credentials: "include" });
+      }
     } catch (error) {
       console.error("Logout API call failed:", error);
     } finally {
@@ -117,36 +131,37 @@ export const AuthProvider = ({ children }) => {
       ]);
       setAccessToken(null);
       setUser(null);
-
       router.replace("/(auth)");
     }
   };
 
   const attemptTokenRefresh = async () => {
     try {
-      // ✅ FIXED: Use the correct refresh endpoint based on user role
-      const refreshUrl = user?.role === "admin" 
-        ? "/admin/refreshToken" 
-        : "/user/refreshToken";
-      
-      console.log(`Refreshing token for ${user?.role} at ${refreshUrl}`);
+      if (USE_MOCK) {
+        // Expected backend API (commented)
+        // Request: POST `${API}${user?.role === 'admin' ? '/admin/refreshToken' : '/user/refreshToken'}`
+        // Cookie: refresh_token (HttpOnly)
+        // Response 200:
+        // { "access_token": string }
+        const newToken = `mock_refreshed_token_${user?.role || 'user'}`;
+        await SecureStore.setItemAsync("access_token", newToken);
+        setAccessToken(newToken);
+        return newToken;
+      }
 
+      const refreshUrl = user?.role === "admin" ? "/admin/refreshToken" : "/user/refreshToken";
       const response = await fetch(`${API}${refreshUrl}`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
       });
-
       const data = await response.json();
       if (!response.ok) {
         console.error("Refresh token error:", data.error);
         throw new Error(data.error || "Refresh failed");
       }
-
       await SecureStore.setItemAsync("access_token", data.access_token);
       setAccessToken(data.access_token);
-
-      console.log("Token refreshed successfully");
       return data.access_token;
     } catch (err) {
       console.error("Token refresh failed:", err);
@@ -162,6 +177,26 @@ export const AuthProvider = ({ children }) => {
     console.log("🔍 Current user:", user ? JSON.stringify(user, null, 2) : "MISSING");
 
     try {
+      if (USE_MOCK) {
+        // Minimal mock router for app demo
+        // Documenting expected shapes per endpoint (examples):
+        // - GET `${API}/root/health-check` -> { "status": "ok", "uptime": number }
+        // - GET `${API}/user/streak` -> { "streak": number, "lastCheckIn": ISOString }
+        // - POST `${API}/user/checkin` -> { "success": true, "streak": number }
+        const now = new Date().toISOString();
+        if (url.includes('/root/health-check')) {
+          return { status: 'ok', uptime: 12345 };
+        }
+        if (url.includes('/user/streak')) {
+          return { streak: 7, lastCheckIn: now };
+        }
+        if (url.includes('/user/checkin')) {
+          return { success: true, streak: 8 };
+        }
+        // Default mock
+        return { ok: true };
+      }
+
       // First attempt
       let response = await fetch(url, {
         ...options,

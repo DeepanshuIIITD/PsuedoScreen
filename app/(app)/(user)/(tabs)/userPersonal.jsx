@@ -5,6 +5,10 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import RNPickerSelect from 'react-native-picker-select';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { useClass } from '@/app/contexts/ClassContext';
+const API = "https://streak-app-uxyv.onrender.com";
+const USE_MOCK = true; // Toggle mocked attendance APIs
 
 
 const userPersonal = () => {
@@ -15,6 +19,9 @@ const userPersonal = () => {
   const [isReportView, setIsReportView] = React.useState(null); 
   const [selectedTime, setSelectedTime] = React.useState(new Date());
   const [showTimePicker, setShowTimePicker] = React.useState(false);
+
+  const { apiCall } = useAuth();
+  const { setAttendanceData } = useClass();
 
   const todayDate = new Date().toLocaleDateString();
   const formatTime = (date) => {
@@ -92,7 +99,7 @@ const renderJoinedSummary = () => (
     {/* Submit with validation */}
     <TouchableOpacity
       style={styles.submitButton}
-      onPress={() => {
+      onPress={async () => {
         if (!todayNote.trim()) {
           alert("⚠️ Please enter a note before submitting!");
           return;
@@ -101,7 +108,32 @@ const renderJoinedSummary = () => (
           alert("⚠️ Please select the time spent before submitting!");
           return;
         }
-        setAttendanceSubmitted(true);
+        // Submit attendance (Present)
+        try {
+          if (USE_MOCK) {
+            // Expected backend API (commented)
+            // POST `${API}/user/checkin`
+            // Body:
+            // { "classId": string, "status": "present" | "absent", "note": string, "timeSpentMinutes": number, "excuse"?: string }
+            // Response 200:
+            // { "success": true, "streak": number }
+            const todayKey = new Date().toISOString().split('T')[0];
+            setAttendanceData(prev => ({ ...prev, [todayKey]: 1 }));
+            setAttendanceSubmitted(true);
+          } else {
+            const minutes = Math.max(0, Math.round((selectedTime.getHours()*60) + selectedTime.getMinutes()));
+            await apiCall(`${API}/user/checkin`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ classId: 'selected_class_id', status: 'present', note: todayNote, timeSpentMinutes: minutes })
+            });
+            const todayKey = new Date().toISOString().split('T')[0];
+            setAttendanceData(prev => ({ ...prev, [todayKey]: 1 }));
+            setAttendanceSubmitted(true);
+          }
+        } catch (e) {
+          alert(`Failed to submit: ${e.message}`);
+        }
       }}
     >
       <Text style={styles.submitText}>Submit</Text>
@@ -130,12 +162,33 @@ const renderExcuseForm = () => (
     />
     <TouchableOpacity
       style={styles.submitButton}
-      onPress={() => {
+      onPress={async () => {
         if (!excuse) {
           alert("⚠️ Please select a reason before submitting!");
           return;
         }
-        setAttendanceSubmitted(true);
+        try {
+          if (USE_MOCK) {
+            // Expected backend API (commented)
+            // POST `${API}/user/checkin`
+            // Body: { "classId": string, "status": "absent", "excuse": string }
+            // Response 200: { "success": true }
+            const todayKey = new Date().toISOString().split('T')[0];
+            setAttendanceData(prev => ({ ...prev, [todayKey]: 0 }));
+            setAttendanceSubmitted(true);
+          } else {
+            await apiCall(`${API}/user/checkin`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ classId: 'selected_class_id', status: 'absent', excuse })
+            });
+            const todayKey = new Date().toISOString().split('T')[0];
+            setAttendanceData(prev => ({ ...prev, [todayKey]: 0 }));
+            setAttendanceSubmitted(true);
+          }
+        } catch (e) {
+          alert(`Failed to submit: ${e.message}`);
+        }
       }}
     >
       <Text style={styles.submitText}>Submit</Text>

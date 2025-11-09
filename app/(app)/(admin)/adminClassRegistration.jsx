@@ -20,6 +20,7 @@ const AdminClassRegistration = () => {
   // const [description, setDescription] = React.useState('');
 
   const API =  "https://streak-app-uxyv.onrender.com";
+  const USE_MOCK = true; // Toggle mocked createClass API
 
   const handleSubmit = async () => {
   if (!email || !phone || !title) {
@@ -29,31 +30,37 @@ const AdminClassRegistration = () => {
 
   try {
     console.log("Creating Class...");
-
-    // const createClassResponse = await apiCall(`${API}/admin/createClass`, {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify({
-    //     name: title,
-    //     phone,
-    //     email,
-    //   }),
-    // });
-
-    // const createClassData = await createClassResponse.json();
+    if (USE_MOCK) {
+      // Expected backend API (commented)
+      // POST `${API}/admin/createClass`
+      // Body:
+      // { "name": string, "phone": string, "email": string }
+      // Response 201:
+      // { "class_id": string, "class_code": string, "name": string, "email": string, "phone": string, "CreatedAt": ISOString }
+      const createClassData = {
+        class_id: 'c_999',
+        class_code: 'NEW999',
+        name: title,
+        email,
+        phone,
+        CreatedAt: new Date().toISOString(),
+      };
+      console.log("Class Created Successfully (mock):", createClassData);
+      Alert.alert(
+        "✅ Class Created Successfully!",
+        `${createClassData.name}\n\n📋 Class Code: ${createClassData.class_code}\n🆔 Class ID: ${createClassData.class_id}\n\n📧 ${createClassData.email}\n📱 ${createClassData.phone}`,
+        [ { text: "View Classes", onPress: () => router.push("/adminClassSelector") } ]
+      );
+      return;
+    }
 
     const createClassData = await apiCall(`${API}/admin/createClass`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: title,
-          phone,
-          email,
-        }),
-      });
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: title, phone, email }),
+    });
 
-  //   
-  console.log("Class Created Successfully:", createClassData);
+  //     console.log("Class Created Successfully:", createClassData);
 
       // Show success message with class details
       Alert.alert(

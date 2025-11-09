@@ -353,6 +353,8 @@ import React, { useEffect, useState } from "react";
 import { Alert, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColorScheme } from '@/hooks/useColorScheme';
+const API = "https://streak-app-uxyv.onrender.com";
+const USE_MOCK = true; // Toggle mocked students APIs
 
 const adminStudents = () => {
   const insets = useSafeAreaInsets();
@@ -430,10 +432,22 @@ const adminStudents = () => {
         {
           text: "Remove",
           style: "destructive",
-          onPress: () => {
-            // TODO: Replace with actual API call when backend is ready
-            setStudentNameList(prev => prev.filter(s => s.id !== student.id));
-            Alert.alert("Success", `${student.firstName} ${student.lastName} has been removed from the class.`);
+          onPress: async () => {
+            // Expected backend API (commented)
+            // DELETE `${API}/admin/class/{classId}/students/{studentId}`
+            // Response 200: { "removed": true }
+            try {
+              if (USE_MOCK) {
+                setStudentNameList(prev => prev.filter(s => s.id !== student.id));
+                Alert.alert("Success", `${student.firstName} ${student.lastName} has been removed from the class.`);
+              } else {
+                // await apiCall(`${API}/admin/class/${selectedClass.id}/students/${student.id}`, { method: 'DELETE' });
+                setStudentNameList(prev => prev.filter(s => s.id !== student.id));
+                Alert.alert("Success", `${student.firstName} ${student.lastName} has been removed from the class.`);
+              }
+            } catch (e) {
+              Alert.alert('Error', e.message || 'Failed to remove student');
+            }
           }
         }
       ]
