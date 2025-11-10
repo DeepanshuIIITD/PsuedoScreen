@@ -1,5 +1,6 @@
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { API } from "@env";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -26,13 +27,15 @@ const AdminHome = () => {
     : { bg:'#f9fafb', card:'#ffffff', text:'#111827', sub:'#374151', border:'#e5e7eb' };
   const {selectedClass } = useClass();
   // const { classId, className, classCode, email, phone } = useLocalSearchParams();
-  const API = "https://streak-app-uxyv.onrender.com";
+  // const API = "https://streak-app-uxyv.onrender.com";
 
   const [classData, setClassData] = useState(null);
   const [attendanceData, setAttendanceData] = useState({});
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isLoading, setIsLoading] = useState(true);
   const [menuVisible, setMenuVisible] = useState(false);
+  const [todayPresent, setTodayPresent] = useState(0);
+  
 
   
 
@@ -51,36 +54,21 @@ const AdminHome = () => {
   const fetchAttendanceData = async () => {
     try {
       setIsLoading(true);
-      
-      // Expected backend APIs (commented)
-      // GET `${API}/admin/class/${selectedClass.id}/attendance?range=today|week|month`
-      // Response:
-      // { "attendance": { "YYYY-MM-DD": 0|1|2, ... } }
-      // GET `${API}/admin/class/${selectedClass.id}/analytics`
-      // Response:
-      // { "bestStreak": number, "totals": { "present": number, "absent": number, "other": number } }
 
-      // Mock data for frontend demonstration
-      const mockAttendanceData = {
-        "2025-01-01": STATUS.PRESENT,
-        "2025-01-02": STATUS.PRESENT,
-        "2025-01-03": STATUS.ABSENT,
-        "2025-01-04": STATUS.PRESENT,
-      };
-      
-      setAttendanceData(mockAttendanceData);
+      const quickSummary = apiCall(`${API}/admin/quickSummary/${selectedClass.id}`,{
+        method: `GET`,
+        headers : {'content-Type': 'application/json'},
+      });
 
-      // TODO: Uncomment when backend is ready
-      // if (selectedClass?.id) {
-      //   const attendanceResponse = await apiCall(`${API}/admin/class/${selectedClass.id}/attendance`, {
-      //     method: "GET",
-      //     headers: { "Content-Type": "application/json" },
-      //   });
-      //   setAttendanceData(attendanceResponse || {});
-      // }
+      console.log("Admin Quick - Summary looks like , ", quickSummary);
+      const todaysAttendance = apiCall(`${API}/admin/todaySummary/${selectedClass.id}`,{
+        method: 'GET',
+        headers : {'content-Type' : 'application/json'},
+      });
+      console.log("Admin Todays - Summary looks like , ",todaysAttendance);
 
     } catch (err) {
-      console.error("Error fetching attendance data:", err);
+      console.error("Error fetching quickSummary data:", err);
       setAttendanceData({});
     } finally {
       setIsLoading(false);
@@ -89,55 +77,22 @@ const AdminHome = () => {
 
   const getBestStreak = (attendanceData) => {
     let best = 0, current = 0;
-    const dates = Object.keys(attendanceData).sort();
-    dates.forEach((date) => {
-      if (attendanceData[date] === STATUS.PRESENT) {
-        current++;
-        best = Math.max(best, current);
-      } else {
-        current = 0;
-      }
-    });
+    
     return best;
   };
 
   const getTotalSummary = (attendanceData) => {
     let present = 0, absent = 0, other = 0;
-    Object.values(attendanceData).forEach((status) => {
-      if (status === STATUS.PRESENT) present++;
-      else if (status === STATUS.ABSENT) absent++;
-      else if (status === STATUS.OTHER) other++;
-    });
     return { present, absent, other };
   };
 
   const getCurrentWeekSummary = (attendanceData) => {
     let present = 0, absent = 0, other = 0;
-    const today = new Date();
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - today.getDay() + 1);
-
-    Object.entries(attendanceData).forEach(([date, status]) => {
-      const d = new Date(date);
-      if (d >= startOfWeek && d <= today) {
-        if (status === STATUS.PRESENT) present++;
-        else if (status === STATUS.ABSENT) absent++;
-        else if (status === STATUS.OTHER) other++;
-      }
-    });
-
     return { present, absent, other };
   };
 
   const getTodayStrength = (attendanceData) => {
     let present = 0, absent = 0, other = 0;
-    const today = new Date().toISOString().split('T')[0];
-    
-    if (attendanceData[today]) {
-      if (attendanceData[today] === STATUS.PRESENT) present++;
-      else if (attendanceData[today] === STATUS.ABSENT) absent++;
-      else other++;
-    }
     
     return { present, absent, other };
   };

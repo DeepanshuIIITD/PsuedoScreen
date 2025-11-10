@@ -33,7 +33,7 @@ const app = () => {
   //testing function
   const testServerConnection = async () => {
     try {
-      console.log('Testing connection to:', API);
+      
       if (USE_MOCK) {
         // Expected backend API (commented)
         // Request: GET `${API}/root/health-check`
@@ -44,7 +44,7 @@ const app = () => {
         alert(`Server connection successful! Status: ${data.status}`);
         return true;
       }
-
+      console.log('Testing connection to: ', `${API}/root/health-check`);
       const response = await fetch(`${API}/root/health-check`, {
         method: 'GET',
         headers: {
@@ -52,6 +52,7 @@ const app = () => {
         },
         timeout: 10000,
       });
+      // console.log("Response looks like this , ", response);
       if (!response.ok) {
         throw new Error(`Server responded with status: ${response.status}`);
       }

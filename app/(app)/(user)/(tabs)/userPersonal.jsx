@@ -1,14 +1,13 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 // import { ScrollView } from 'react-native-gesture-handler';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useClass } from '@/app/contexts/ClassContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import RNPickerSelect from 'react-native-picker-select';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-const API = "https://streak-app-uxyv.onrender.com";
-const USE_MOCK = true; // Toggle mocked attendance APIs
+// const API = "https://streak-app-uxyv.onrender.com";
+import { API } from '@env';
+const USE_MOCK = false; // Toggle mocked attendance APIs
 
 
 // post /user/markAttendance/${classid}. payload (status= 'present')
@@ -23,8 +22,8 @@ const userPersonal = () => {
   const [selectedTime, setSelectedTime] = React.useState(new Date());
   const [showTimePicker, setShowTimePicker] = React.useState(false);
 
-  const { apiCall } = useAuth();
-  const { setAttendanceData } = useClass();
+  const { user, apiCall } = useAuth();
+  const { selectedClass ,setAttendanceData } = useClass();
 
   const todayDate = new Date().toLocaleDateString();
   const formatTime = (date) => {
@@ -32,6 +31,33 @@ const userPersonal = () => {
     const minutes = date.getMinutes().toString().padStart(2, '0');
     return `${hours}:${minutes}`;
   };
+
+  // If already marked today, disable re-marking
+  React.useEffect(() => {
+    const checkToday = async () => {
+      if (!selectedClass) return;
+      try {
+        if (USE_MOCK) return;
+        const cal = await apiCall(`${API}/user/calendar/${selectedClass.id}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        const todayKey = new Date(Date.now() - (new Date()).getTimezoneOffset()*60000).toISOString().slice(0,10);
+        const todayRec = (cal?.calendar || []).find((c) => c.date === todayKey);
+        if (todayRec) {
+          // Mark submitted and reflect local toggle to show confirmation text
+          setAttendanceSubmitted(true);
+          setJoined(todayRec.status === 'present');
+          // also update shared grid
+          const statusVal = todayRec.status === 'present' ? 1 : todayRec.status === 'absent' ? 0 : 2;
+          setAttendanceData(prev => ({ ...prev, [todayKey]: statusVal }));
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+    checkToday();
+  }, [selectedClass]);
 
   // for safeareview testing purpose only
   const insets = useSafeAreaInsets();
@@ -65,16 +91,16 @@ const renderJoinedSummary = () => (
     <Text style={styles.summaryText}>You have joined today's class. Great job!</Text>
 
     {/* Note input */}
-    <TextInput
+    {/* <TextInput
       style={styles.inputBox}
       placeholder="Any notes for today?"
       value={todayNote}
       onChangeText={setTodayNote}
       multiline
-    />
+    /> */}
 
     {/* Time spent selector */}
-    <TouchableOpacity
+    {/* <TouchableOpacity
       style={styles.inputBox}
       onPress={() => setShowTimePicker(true)}
     >
@@ -97,20 +123,21 @@ const renderJoinedSummary = () => (
           if (date) setSelectedTime(date);
         }}
       />
-    )}
+    )} */}
 
     {/* Submit with validation */}
     <TouchableOpacity
       style={styles.submitButton}
+      disabled={attendanceSubmitted}
       onPress={async () => {
-        if (!todayNote.trim()) {
-          alert("⚠️ Please enter a note before submitting!");
-          return;
-        }
-        if (!selectedTime) {
-          alert("⚠️ Please select the time spent before submitting!");
-          return;
-        }
+        // if (!todayNote.trim()) {
+        //   alert("⚠️ Please enter a note before submitting!");
+        //   return;
+        // }
+        // if (!selectedTime) {
+        //   alert("⚠️ Please select the time spent before submitting!");
+        //   return;
+        // }
         // Submit attendance (Present)
         try {
           if (USE_MOCK) {
@@ -124,11 +151,12 @@ const renderJoinedSummary = () => (
             setAttendanceData(prev => ({ ...prev, [todayKey]: 1 }));
             setAttendanceSubmitted(true);
           } else {
-            const minutes = Math.max(0, Math.round((selectedTime.getHours()*60) + selectedTime.getMinutes()));
-            await apiCall(`${API}/user/checkin`, {
+            // const minutes = Math.max(0, Math.round((selectedTime.getHours()*60) + selectedTime.getMinutes()));
+            await apiCall(`${API}/user/markAttendance/${selectedClass.id}`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ classId: 'selected_class_id', status: 'present', note: todayNote, timeSpentMinutes: minutes })
+              // body: JSON.stringify({ classId: 'selected_class_id', status: 'present', note: todayNote, timeSpentMinutes: minutes })
+              body: JSON.stringify({status: 'present'})
             });
             const todayKey = new Date().toISOString().split('T')[0];
             setAttendanceData(prev => ({ ...prev, [todayKey]: 1 }));
@@ -154,7 +182,7 @@ const renderJoinedSummary = () => (
 // 👉 Excuse form with validation
 const renderExcuseForm = () => (
   <>
-    <Text style={styles.cardTitle}>Reason for not joining ?</Text>
+    {/* <Text style={styles.cardTitle}>Reason for not joining ?</Text>
     <RNPickerSelect
       onValueChange={setExcuse}
       value={excuse}
@@ -162,14 +190,14 @@ const renderExcuseForm = () => (
       items={excuseOptions}
       style={pickerStyle}
       useNativeAndroidPickerStyle={false}
-    />
+    /> */}
     <TouchableOpacity
       style={styles.submitButton}
       onPress={async () => {
-        if (!excuse) {
-          alert("⚠️ Please select a reason before submitting!");
-          return;
-        }
+        // if (!excuse) {
+        //   alert("⚠️ Please select a reason before submitting!");
+        //   return;
+        // }
         try {
           if (USE_MOCK) {
             // Expected backend API (commented)
@@ -180,10 +208,10 @@ const renderExcuseForm = () => (
             setAttendanceData(prev => ({ ...prev, [todayKey]: 0 }));
             setAttendanceSubmitted(true);
           } else {
-            await apiCall(`${API}/user/checkin`, {
+            await apiCall(`${API}/user/markAttendance/${selectedClass.id}`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ classId: 'selected_class_id', status: 'absent', excuse })
+              body: JSON.stringify({status: 'absent'})
             });
             const todayKey = new Date().toISOString().split('T')[0];
             setAttendanceData(prev => ({ ...prev, [todayKey]: 0 }));

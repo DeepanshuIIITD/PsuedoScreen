@@ -7,7 +7,6 @@ import * as Animatable from 'react-native-animatable';
 import RNPickerSelect from 'react-native-picker-select';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-
 const STATUS = {
   ABSENT: 0,
   PRESENT: 1,

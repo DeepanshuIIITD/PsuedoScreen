@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
   // Load stored auth data at startup
   useEffect(() => {
     loadStoredAuth();
-    logout();       // force logout
+    // logout();       // force logout
   }, []);
 
   const loadStoredAuth = async () => {
@@ -118,9 +118,9 @@ export const AuthProvider = ({ children }) => {
     try {
       if (!USE_MOCK) {
         // Expected backend API (commented)
-        // Request: POST `${API}${user?.role === 'admin' ? '/admin/logout' : '/user/logout'}`
+        // Request: POST `${API}${user?.role === 'admin' ? '/admin/logOutAdmin/' : '/user/logOutUser'}`
         // Headers/Cookies: includes refresh token cookie
-        const logoutUrl = user?.role === "admin" ? "/admin/logout" : "/user/logout";
+        const logoutUrl = user?.role === "admin" ? "/admin/logOutAdmin/" : "/user/logOutUser";
         await fetch(`${API}${logoutUrl}`, { method: "POST", credentials: "include" });
       }
     }

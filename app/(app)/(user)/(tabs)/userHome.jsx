@@ -75,10 +75,10 @@ const UserHome = () => {
   const [loading, setIsLoading] = useState(true);
   const [streak, setStreak] = useState(20);
   const [bestStreak, setBestStreak] = useState(0);
-  const [todayStatus, setTodayStatus ] = useState("unmarked")
+  const [todayStatus, setTodayStatus ] = useState("Not marked");
   const [totalPresent, setTotalPresent ] = useState(0);
-  const [totalAbsent, setTotalAbsent] = useState();
-  const [totalUnMarked, setTotalUnMarked] = useState();
+  const [totalAbsent, setTotalAbsent] = useState(0);
+  const [totalUnMarked, setTotalUnMarked] = useState(0);
   const [currentWeekPresent, setCurrentWeekPresent] = useState(0);
   const [currentWeekAbsent, setCurrentWeekAbsent] = useState(0);
   const [currentWeekUnMarked, setCurrentWeekUnMarked] = useState(0);
@@ -165,6 +165,19 @@ const getPercentages = async () => {
       try {
         if (USE_MOCK) {
           // Local compute for best streak
+          const getBestStreak = (attendance) => {
+            let best = 0, current = 0;
+            const dates = Object.keys(attendance).sort();
+            dates.forEach((date) => {
+              if (attendance[date] === STATUS.PRESENT) {
+                current++;
+                best = Math.max(best, current);
+              } else {
+                current = 0;
+              }
+            });
+            return best;
+          };
           setBestStreak(getBestStreak(attendanceData));
           // Example mocked current streak
           setStreak(getBestStreak(attendanceData));
@@ -306,9 +319,12 @@ const getPercentages = async () => {
         <View style={styles.innerBox}>
           {(() => {
             const bestStreakValue = bestStreak;
-            const totalSummary = getTotalSummary();
-            // const weekSummary = getCurrentWeekSummary(attendanceData);
-            const percentages = getPercentages();
+            const total = totalPresent + totalAbsent + totalUnMarked;
+            const percentages = total === 0 ? {present: 0, absent: 0, other: 0} : {
+              present: ((totalPresent/total)*100).toFixed(1),
+              absent: ((totalAbsent/total)*100).toFixed(1),
+              other: ((totalUnMarked/total)*100).toFixed(1),
+            };
 
             return (
               <>
