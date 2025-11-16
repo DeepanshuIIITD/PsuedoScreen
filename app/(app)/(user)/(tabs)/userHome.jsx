@@ -163,38 +163,17 @@ const getPercentages = async () => {
     const run = async () => {
       if (!selectedClass) return;
       try {
-        if (USE_MOCK) {
-          // Local compute for best streak
-          const getBestStreak = (attendance) => {
-            let best = 0, current = 0;
-            const dates = Object.keys(attendance).sort();
-            dates.forEach((date) => {
-              if (attendance[date] === STATUS.PRESENT) {
-                current++;
-                best = Math.max(best, current);
-              } else {
-                current = 0;
-              }
-            });
-            return best;
-          };
-          setBestStreak(getBestStreak(attendanceData));
-          // Example mocked current streak
-          setStreak(getBestStreak(attendanceData));
-        } else {
           // Best streak for selected class
           const resp = await apiCall(`${API}/user/streak/${selectedClass.id}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
           });
           console.log(resp);
-          // Handle response shape: number or {streak:number}
-          // const best = typeof resp === 'number' ? resp : (resp?.streak ?? 0);
           const best = resp.bestStreak;
           const current = resp.currentStreak;
           setBestStreak(best);
           setStreak(current);
-        }
+
       } catch (e) {
         setBestStreak(0);
         setStreak(0);
@@ -253,8 +232,7 @@ const getPercentages = async () => {
     setMenuVisible(false);
     router.push("/(app)/(user)/about");
   };
-  
-  
+
 
   return (
     <View style={[styles.safeContainer,{paddingTop:insets.top, backgroundColor: palette.bg} ]}>

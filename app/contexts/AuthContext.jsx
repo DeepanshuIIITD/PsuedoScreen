@@ -20,8 +20,6 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // const API = "https://streak-app-uxyv.onrender.com";
-  const USE_MOCK = false; // Toggle to switch between mocked and real API
 
   // Load stored auth data at startup
   useEffect(() => {
@@ -49,47 +47,6 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (role, username, password) => {
     try {
-      if (USE_MOCK) {
-        // Expected backend API (commented)
-        // Request: POST `${API}${role === 'admin' ? '/admin/signIn' : '/user/signIn'}`
-        // Body:
-        // {
-        //   "userName": string,
-        //   "password": string
-        // }
-        // Response 200:
-        // {
-        //   "access_token": string,
-        //   "user": {
-        //     "id": string,
-        //     "username": string,
-        //     "firstName": string,
-        //     "lastName": string,
-        //     "email": string
-        //   }
-        // }
-        // Response 401/400:
-        // { "error": string }
-
-        // const mockData = {
-        //   access_token: `mock_access_token_${role}_${username}`,
-        //   user: {
-        //     id: "u_123",
-        //     username,
-        //     firstName: "Demo",
-        //     lastName: role === "admin" ? "Admin" : "User",
-        //     email: `${username || 'demo'}@example.com`,
-        //   },
-        // };
-
-        const userWithRole = { ...mockData.user, role };
-
-        await SecureStore.setItemAsync("access_token", mockData.access_token);
-        setAccessToken(mockData.access_token);
-        await SecureStore.setItemAsync("user", JSON.stringify(userWithRole));
-        setUser(userWithRole);
-        return { success: true };
-      }
 
       const url = role === "admin" ? "/admin/signIn" : "/user/signIn";
       const response = await fetch(`${API}${url}`, {
@@ -116,15 +73,9 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      if (!USE_MOCK) {
-        // Expected backend API (commented)
-        // Request: POST `${API}${user?.role === 'admin' ? '/admin/logOutAdmin/' : '/user/logOutUser'}`
-        // Headers/Cookies: includes refresh token cookie
         const logoutUrl = user?.role === "admin" ? "/admin/logOutAdmin/" : "/user/logOutUser";
         await fetch(`${API}${logoutUrl}`, { method: "POST", credentials: "include" });
-      }
     }
-
     catch (error) {
       console.error("Logout API call failed:", error);
     } finally {
@@ -140,18 +91,6 @@ export const AuthProvider = ({ children }) => {
 
   const attemptTokenRefresh = async () => {
     try {
-      if (USE_MOCK) {
-        // Expected backend API (commented)
-        // Request: POST `${API}${user?.role === 'admin' ? '/admin/refreshToken' : '/user/refreshToken'}`
-        // Cookie: refresh_token (HttpOnly)
-        // Response 200:
-        // { "access_token": string }
-        const newToken = `mock_refreshed_token_${user?.role || 'user'}`;
-        await SecureStore.setItemAsync("access_token", newToken);
-        setAccessToken(newToken);
-        return newToken;
-      }
-
       const refreshUrl = user?.role === "admin" ? "/admin/refreshToken" : "/user/refreshToken";
       const response = await fetch(`${API}${refreshUrl}`, {
         method: "POST",
@@ -176,30 +115,9 @@ export const AuthProvider = ({ children }) => {
   // ✅ Unified API call wrapper (replaces apiHelper)
   const apiCall = async (url, options = {}) => {
     console.log("🔍 API Call to:", url);
-    // console.log("🔍 Current access_token:", access_token ? "EXISTS" : "MISSING");
-    // console.log("🔍 Current user:", user ? JSON.stringify(user, null, 2) : "MISSING");
+    console.log("Access token is ", access_token);
 
     try {
-      if (USE_MOCK) {
-        // Minimal mock router for app demo
-        // Documenting expected shapes per endpoint (examples):
-        // - GET `${API}/root/health-check` -> { "status": "ok", "uptime": number }
-        // - GET `${API}/user/streak` -> { "streak": number, "lastCheckIn": ISOString }
-        // - POST `${API}/user/checkin` -> { "success": true, "streak": number }
-        const now = new Date().toISOString();
-        if (url.includes('/root/health-check')) {
-          return { status: 'ok', uptime: 12345 };
-        }
-        if (url.includes('/user/streak')) {
-          return { streak: 7, lastCheckIn: now };
-        }
-        if (url.includes('/user/checkin')) {
-          return { success: true, streak: 8 };
-        }
-        // Default mock
-        return { ok: true };
-      }
-
       // First attempt
       let response = await fetch(url, {
         ...options,
@@ -233,12 +151,8 @@ export const AuthProvider = ({ children }) => {
         }
       }
 
-      
-      // console.log("AUTH CONTEXT FILE - Error occurs in api calling ");
-      // console.log("user id - ",user.id, " Type of user_id is ", typeof(user.id));
-      // console.log("Type of user_id is ", )
-      // console.log("Full Response ", response);
       if (!response.ok) {
+        console.log("Error in api response, Response looks like ", response);
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || `API Error: ${response.message}`);
       }

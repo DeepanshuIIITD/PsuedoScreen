@@ -19,45 +19,9 @@ const UserClassEnrolled = () => {
     // const authContext = useAuth();
     const { user, access_token } = useAuth(); // Get user and accessToken from auth context\
     const {apiCall} = useAuth();
-    // const API = 'https://streak-app-uxyv.onrender.com';
-    const USE_MOCK = false; // Toggle to mock class list API
 
     const fetchClasses = async () => {
         try {
-            if (USE_MOCK) {
-                // Expected backend API (commented)
-                // GET `${API}/user/classList`
-                // Headers: Authorization: Bearer <access_token>
-                // Response 200:
-                // [
-                //   {
-                //     "id": string,            // or class_id
-                //     "name": string,          // or class_name/title
-                //     "class_code": string,    // or code
-                //     "email": string,
-                //     "phone": string,
-                //     "created_at": ISODate,
-                //     "joined_at": ISODate,
-                //     "created_by_admin_id": string
-                //   }
-                // ]
-                const mock = [
-                    { id: 'c_101', name: 'Math 101', class_code: 'MATH101', email: 'math@class.com', phone: '9999999999', created_at: '2025-01-01', joined_at: '2025-02-01', created_by_admin_id: 'a_1' },
-                    { id: 'c_202', name: 'Physics Basics', class_code: 'PHY202', email: 'phy@class.com', phone: '8888888888', created_at: '2025-01-10', joined_at: '2025-02-05', created_by_admin_id: 'a_1' },
-                ];
-                setClasses(mock.map(x => ({
-                    id: x.id,
-                    title: x.name,
-                    class_code: x.class_code,
-                    phone: x.phone,
-                    email: x.email,
-                    created_at: x.created_at,
-                    joined_at: x.joined_at,
-                    created_by_admin_id: x.created_by_admin_id,
-                })));
-                return;
-            }
-
             const data = await apiCall(`${API}/user/classList`,{
                 method: 'GET' ,
                 headers: { "Content-Type": "application/json" },
@@ -101,16 +65,6 @@ const UserClassEnrolled = () => {
             setRefreshing(false);
         }
     };
-
-    // useEffect(() => {
-    //     console.log("useEffect triggered");
-    //     console.log("User:", user);
-    //     console.log("Access Token exists:", !!access_token);
-        
-    //     // Always call fetchClasses, even if user or token is missing (to show proper error)
-    //     fetchClasses();
-    // }, [user, access_token]);
-
     
 
     useEffect(() => {
@@ -185,7 +139,7 @@ const UserClassEnrolled = () => {
                     >
                         {classes.map((item) => (
                             <Pressable
-                                key={item}
+                                key={item.id?.toString()}
                                 style={[styles.classCard,{ backgroundColor: colorScheme==='dark' ? '#0f172a' : 'white', borderColor: colorScheme==='dark' ? '#1f2937' : '#e5e7eb', borderWidth: 1 }]}
                                 onPress={() => redirectToClass(item)}
                             >

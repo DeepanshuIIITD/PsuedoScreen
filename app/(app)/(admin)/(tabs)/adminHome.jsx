@@ -8,16 +8,6 @@ import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, Touc
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useClass } from '../../../contexts/ClassContext';
 
-const USE_MOCK = true; // Toggle mocked admin APIs
-
-
-
-const STATUS = {
-  PRESENT: 1, // Match userHome.jsx status format
-  ABSENT: 0,
-  OTHER: 2,
-};
-
 const AdminHome = () => {
   const { user, apiCall, logout } = useAuth();
   const insets = useSafeAreaInsets();
@@ -26,48 +16,88 @@ const AdminHome = () => {
     ? { bg:'#0b0f14', card:'#0f172a', text:'#e5e7eb', sub:'#94a3b8', border:'#1f2937' }
     : { bg:'#f9fafb', card:'#ffffff', text:'#111827', sub:'#374151', border:'#e5e7eb' };
   const {selectedClass } = useClass();
-  // const { classId, className, classCode, email, phone } = useLocalSearchParams();
-  // const API = "https://streak-app-uxyv.onrender.com";
 
   const [classData, setClassData] = useState(null);
   const [attendanceData, setAttendanceData] = useState({});
+  const [bestStreak, setBestStreak] = useState(0);
+  const [currentStreak, setCurrentStreak] = useState(0);
+  const [totals, setTotals] = useState({ present: 0, absent: 0, other: 0 });
+  const [weekSummary, setWeekSummary] = useState({ present: 0, absent: 0, other: 0 });
+  const [todayStrength, setTodayStrength] = useState({ present: 0, absent: 0, other: 0 });
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isLoading, setIsLoading] = useState(true);
+  const [isReportView, setIsReportView] = useState(null); 
   const [menuVisible, setMenuVisible] = useState(false);
-  const [todayPresent, setTodayPresent] = useState(0);
-  
-
-  
+  const [currentMonth, setCurrentMonth] = useState({ present: 0, absent: 0, other: 0 });
+  const [currentYear, setCurrentYear] = useState({ present: 0, absent: 0, other: 0 });
 
   // Fetch class data when component mounts
   useEffect(() => {
     if (selectedClass) {
       setIsLoading(false);
-      // Fetch mock attendance data for UI demonstration
       fetchAttendanceData();
     }
   }, [selectedClass]);
   console.log("Selected class :", selectedClass);
 
-  // Mock attendance data for UI demonstration
-  // TODO: Replace with actual API call when backend is ready
   const fetchAttendanceData = async () => {
     try {
       setIsLoading(true);
 
-      const quickSummary = apiCall(`${API}/admin/quickSummary/${selectedClass.id}`,{
+      const quickSummary = await apiCall(`${API}/admin/quickSummary/${selectedClass.id}`,{
         method: `GET`,
         headers : {'content-Type': 'application/json'},
       });
-
       console.log("Admin Quick - Summary looks like , ", quickSummary);
-      const todaysAttendance = apiCall(`${API}/admin/todaySummary/${selectedClass.id}`,{
+
+      const todaysAttendance = await apiCall(`${API}/admin/todaySummary/${selectedClass.id}`,{
         method: 'GET',
         headers : {'content-Type' : 'application/json'},
       });
       console.log("Admin Todays - Summary looks like , ",todaysAttendance);
 
-    } catch (err) {
+
+      const performance = await apiCall(`${API}/admin/report`,{
+        method: 'GET',
+        headers: {'content-Type' : 'application/json'},
+      });
+
+      const cm = performance.class_report.current_month;
+      const cy = performance.class_report.current_year;
+      setCurrentMonth({
+        present: cm.present,
+        absent: cm.absent,
+        other: cm.not_marked,
+      });
+
+      setCurrentYear({
+        present: cy.present,
+        absent: cy.absent,
+        other: cy.not_marked,
+      })
+
+      const q = quickSummary.summary;
+      setTotals({
+        present: q.total_present,
+        absent: q.total_absent,
+        other: q.total_students - (q.total_present + q.total_absent),
+      });
+      setWeekSummary({
+        present: q.current_week_present ?? 0,
+        absent: q.current_week_absent ?? 0,
+        other: 0,  // for now unmarked is set to zero
+      });
+
+      const t = todaysAttendance.summary;
+      setTodayStrength({
+        present: t.total_present,
+        absent: t.total_absent,
+        other: t.total_students - (t.total_absent+t.total_present),
+      });
+
+    getBestStreak();
+  
+  } catch (err) {
       console.error("Error fetching quickSummary data:", err);
       setAttendanceData({});
     } finally {
@@ -75,27 +105,49 @@ const AdminHome = () => {
     }
   };
 
-  const getBestStreak = (attendanceData) => {
+  const getBestStreak = async () => {
     let best = 0, current = 0;
-    
-    return best;
+    const streak = await apiCall(`${API}/admin/streak/${selectedClass.id}`,{
+      method: `GET`,
+      headers: `application-Type/json`,
+    });
+    best = streak.bestStreak;
+    setBestStreak(best);
+    current = streak.currentStreak;
+    setCurrentStreak(current);
+    // return best;
   };
 
-  const getTotalSummary = (attendanceData) => {
-    let present = 0, absent = 0, other = 0;
-    return { present, absent, other };
+const handleEditProfile = async () => {
+    setMenuVisible(false);
+    router.push("/(app)/(admin)/editProfile");
   };
 
-  const getCurrentWeekSummary = (attendanceData) => {
-    let present = 0, absent = 0, other = 0;
-    return { present, absent, other };
+const handleAboutPage = async () => {
+    setMenuVisible(false);
+    router.push("/(app)/(admin)/about");
   };
 
-  const getTodayStrength = (attendanceData) => {
-    let present = 0, absent = 0, other = 0;
-    
-    return { present, absent, other };
+const handleLogout = async () => {
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to logout?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Logout",
+          style: "destructive",
+          onPress: async () => {
+            await logout();
+          }
+        }
+      ]
+    );
   };
+
 
   const getPercentages = (summary) => {
     const total = summary.present + summary.absent + summary.other;
@@ -107,6 +159,38 @@ const AdminHome = () => {
       other: ((summary.other / total) * 100).toFixed(1),
     };
   };
+
+
+  // 👉 Monthly Report
+    const renderMonthlyReport = () => (
+    <>
+      <Text style={styles.cardTitle}>Monthly Report</Text>
+      <Text style={styles.summaryText}>Total Classes Joined: {currentMonth.present}</Text>
+      <Text style={styles.summaryText}>Total Classes Missed: {currentMonth.absent}</Text>
+      <Text style={styles.summaryText}>Best Monthly Streak: 14</Text>
+      <View style={styles.streakHeader}>
+        <View style={styles.streakIconWrapper}>
+          <Text style={{ fontSize: 24 }}>🔥</Text>
+        </View>
+        <Text style={styles.streakCounter}>Current Streak: 7 days</Text>
+      </View>
+    </>
+  );
+  
+  const renderYearlyReport = () => (
+    <>
+      <Text style={styles.cardTitle}>Yearly Report</Text>
+      <Text style={styles.summaryText}>Total Classes Joined: {currentYear.present}</Text>
+      <Text style={styles.summaryText}>Total Classes Missed: {currentYear.absent}</Text>
+      <Text style={styles.summaryText}>Best Yearly Streak: 156</Text>
+      <View style={styles.streakHeader}>
+        <Text style={styles.streakCounter}>Longest Streak: 30 days</Text>
+        <View style={styles.streakIconWrapper}>
+          <Text style={{ fontSize: 24 }}>🔥</Text>
+        </View>
+      </View>
+    </>
+  );
 
   // Update current date every minute
   useEffect(() => {
@@ -147,13 +231,9 @@ const AdminHome = () => {
     );
   }
 
-  const bestStreak = getBestStreak(attendanceData);
-  const totalSummary = getTotalSummary(attendanceData);
-  const weekSummary = getCurrentWeekSummary(attendanceData);
-  const todayStrength = getTodayStrength(attendanceData);
-  const totalPercentages = getPercentages(totalSummary);
+  
+  const totalPercentages = getPercentages(totals);
   const todayPercentages = getPercentages(todayStrength);
-
 
   return (
     <ScrollView 
@@ -172,8 +252,8 @@ const AdminHome = () => {
               onPress={() => setMenuVisible(false)}
               activeOpacity={1}
             />
-            <View style={styles.menuContainer}>
-              <TouchableOpacity
+            <View style={[styles.menuContainer,{backgroundColor: palette.menuBg, borderColor: palette.border}] }>
+              {/* <TouchableOpacity
                 style={[styles.menuItem, styles.menuItemDanger]}
                 onPress={() => {
                   Alert.alert(
@@ -185,6 +265,29 @@ const AdminHome = () => {
                     ]
                   );
                 }}
+              >
+                <MaterialCommunityIcons name="logout" size={20} color="#ef4444" style={styles.menuIcon} />
+                <Text style={[styles.menuItemText, styles.menuItemTextDanger]}>Logout</Text>
+              </TouchableOpacity> */}
+              <TouchableOpacity 
+                style={styles.menuItem} 
+                onPress={() => handleEditProfile()}
+              >
+                <MaterialCommunityIcons name="account-edit" size={20} color="#374151" style={styles.menuIcon} />
+                <Text style={[styles.menuItemText,{color: palette.text}]}>Edit Profile</Text>
+              </TouchableOpacity>
+              <View style={styles.menuDivider} />
+              <TouchableOpacity 
+                style={styles.menuItem} 
+                onPress={() => handleAboutPage()}
+              >
+                <MaterialCommunityIcons name="information" size={20} color="#374151" style={styles.menuIcon} />
+                <Text style={[styles.menuItemText,{color: palette.text}]}>About Application</Text>
+              </TouchableOpacity>
+              <View style={styles.menuDivider} />
+              <TouchableOpacity 
+                style={[styles.menuItem, styles.menuItemDanger]} 
+                onPress={() => handleLogout()}
               >
                 <MaterialCommunityIcons name="logout" size={20} color="#ef4444" style={styles.menuIcon} />
                 <Text style={[styles.menuItemText, styles.menuItemTextDanger]}>Logout</Text>
@@ -237,15 +340,44 @@ const AdminHome = () => {
 
           <Text style={[styles.summarySubTitle,{color: colorScheme==='dark' ? '#93c5fd' : '#2563eb'}]}>Total</Text>
           <Text style={[styles.summaryText,{color: palette.text}] }>
-            Present: {totalSummary.present} | Absent: {totalSummary.absent} | Other: {totalSummary.other}
+            Present: {totals.present} | Absent: {totals.absent} | Other: {totals.other}
           </Text>
 
           <Text style={[styles.summarySubTitle,{color: colorScheme==='dark' ? '#93c5fd' : '#2563eb'}]}>Percentages</Text>
           <Text style={[styles.summaryText,{color: palette.text}] }>
             Present: {totalPercentages.present}% | Absent: {totalPercentages.absent}% | Other: {totalPercentages.other}%
           </Text>
+        {/* </View> */}
+        {/* Here I report button similar to personal report */}
+          <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
+            <TouchableOpacity
+              style={[
+                styles.reportButton,
+                isReportView === true && { backgroundColor: "#7c3aed" }
+              ]}
+              onPress={() => setIsReportView(isReportView === true ? null : true)} // toggle
+            >
+              <Text style={styles.cardText}>Monthly Report</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.reportButton,
+                isReportView === false && { backgroundColor: "#7c3aed" }
+              ]}
+              onPress={() => setIsReportView(isReportView === false ? null : false)} // toggle
+            >
+              <Text style={styles.cardText}>Yearly Report</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
+
+      {isReportView !== null && (
+          <View style={[styles.card,{backgroundColor: palette.card, borderWidth:1, borderColor: palette.border}] }>
+            {isReportView ? renderMonthlyReport() : renderYearlyReport()}
+          </View>
+        )}
 
       {/* Today's Summary */}
       <View style={[styles.card,{backgroundColor: palette.card, borderColor: palette.border, borderWidth: 1}] }>
@@ -396,6 +528,20 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginTop: 10,
     color: "#2563eb",
+  },
+  cardText: {
+    fontSize: 16,
+    color: "#374151",
+    textAlign: "center",
+  },
+  reportButton:{
+    marginTop: 12,
+    marginBottom: 14,
+    backgroundColor: "#b567e5ff",
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: "center",
+    width: 120,
   },
   dateText: {
     fontSize: 16,

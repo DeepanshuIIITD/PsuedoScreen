@@ -1,11 +1,12 @@
+import { useAuth } from '@/app/contexts/AuthContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { API } from '@env';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import React, { useMemo, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import * as Animatable from 'react-native-animatable';
-import RNPickerSelect from 'react-native-picker-select';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useClass } from '../../../contexts/ClassContext';
 
 const STATUS = {
   ABSENT: 0,
@@ -38,15 +39,14 @@ const adminStreak = () => {
   const [isReportView, setIsReportView] = React.useState(null); 
   const [selectedTime, setSelectedTime] = React.useState(new Date());
   const [showTimePicker, setShowTimePicker] = React.useState(false);
+  const [currentMonth, setCurrentMonth] = React.useState({present:0,absent:0,other:0});
+  const [currentYear, setCurrentYear] = React.useState({present:0,absent:0,other:0});
 
   // Graph state (mock data for admin)
-  const [attendanceData, setAttendanceData] = useState({
-    "2025-01-01": STATUS.PRESENT,
-    "2025-01-02": STATUS.ABSENT,
-    "2025-01-03": STATUS.PRESENT,
-    "2025-01-04": STATUS.OTHER,
-    "2025-01-05": STATUS.PRESENT,
-  });
+  const [attendanceData, setAttendanceData] = useState({});
+  const { apiCall } = useAuth();
+  const { selectedClass } = useClass();
+  const USE_MOCK = false;
 
   const year = 2025;
   const days = useMemo(() => {
@@ -80,6 +80,37 @@ const adminStreak = () => {
     const d = String(date.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
   };
+
+  // Load calendar and prevent re-marking if already marked today
+  useEffect(() => {
+    const loadCalendar = async () => {
+      if (!selectedClass) return;
+      try {
+        if (USE_MOCK) return;
+        const res = await apiCall(`${API}/admin/calendar/${selectedClass.id}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        const mapped = {};
+        (res?.calendar || []).forEach(({ date, status }) => {
+          const s = status === 'present' ? STATUS.PRESENT : status === 'absent' ? STATUS.ABSENT : STATUS.OTHER;
+          mapped[date] = s;
+        });
+        setAttendanceData(mapped);
+
+        // Prevent re-marking if today exists
+        const todayKey = new Date(Date.now() - (new Date()).getTimezoneOffset()*60000).toISOString().slice(0,10);
+        const t = mapped[todayKey];
+        if (t !== undefined) {
+          setAttendanceSubmitted(true);
+          setJoined(t === STATUS.PRESENT);
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+    loadCalendar();
+  }, [selectedClass]);
 
   const handleDayPress = (date) => {
     const key = formatDate(date);
@@ -117,6 +148,27 @@ const adminStreak = () => {
   },
 };
 
+  const reportData = async () => {
+    
+    const personalReport = await apiCall(`${API}/admin/personalReport/${selectedClass.id}`,{
+      method: `GET`,
+      headers: {"Content-Type": "application/json"},
+    });
+    let cm,cy ;
+    cm = personalReport.personal_report.current_month; cy = personalReport.personalReport.current_year;
+    setCurrentMonth({
+      present: cm.present,
+      absent: cm.absent,
+      other: cm.not_marked,
+    });
+    setCurrentYear({
+      present: cy.present,
+      absent: cy.absent,
+      other: cy.not_marked,
+    });
+  }
+
+
   // 👉 Joined summary with validation
 const renderJoinedSummary = () => (
   <>
@@ -124,16 +176,16 @@ const renderJoinedSummary = () => (
     <Text style={styles.summaryText}>You have joined today's class. Great job!</Text>
 
     {/* Note input */}
-    <TextInput
+    {/* <TextInput
       style={styles.inputBox}
       placeholder="Any notes for today?"
       value={todayNote}
       onChangeText={setTodayNote}
       multiline
-    />
+    /> */}
 
     {/* Time spent selector */}
-    <TouchableOpacity
+    {/* <TouchableOpacity
       style={styles.inputBox}
       onPress={() => setShowTimePicker(true)}
     >
@@ -142,9 +194,9 @@ const renderJoinedSummary = () => (
           ? `Time spent: ${formatTime(selectedTime)}`
           : "Select time spent"}
       </Text>
-    </TouchableOpacity>
+    </TouchableOpacity> */}
 
-    {showTimePicker && (
+    {/* {showTimePicker && (
       <DateTimePicker
       
         value={selectedTime}
@@ -156,23 +208,38 @@ const renderJoinedSummary = () => (
           if (date) setSelectedTime(date);
         }}
       />
-    )}
+    )} */}
 
     {/* Submit with validation */}
     <TouchableOpacity
       style={styles.submitButton}
+      disabled={attendanceSubmitted}
       onPress={() => {
-        if (!todayNote.trim()) {
-          alert("⚠️ Please enter a note before submitting!");
-          return;
-        }
-        if (!selectedTime) {
-          alert("⚠️ Please select the time spent before submitting!");
-          return;
-        }
+        // if (!todayNote.trim()) {
+        //   alert("⚠️ Please enter a note before submitting!");
+        //   return;
+        // }
+        // if (!selectedTime) {
+        //   alert("⚠️ Please select the time spent before submitting!");
+        //   return;
+        // }
         const todayKey = new Date(Date.now() - (new Date()).getTimezoneOffset()*60000).toISOString().slice(0,10);
-        setAttendanceData(prev => ({ ...prev, [todayKey]: STATUS.PRESENT }));
-        setAttendanceSubmitted(true);
+        const doSubmit = async () => {
+          try {
+            if (!USE_MOCK) {
+              await apiCall(`${API}/admin/markAttendance/${selectedClass.id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'present' }),
+              });
+            }
+            setAttendanceData(prev => ({ ...prev, [todayKey]: STATUS.PRESENT }));
+            setAttendanceSubmitted(true);
+          } catch (e) {
+            Alert.alert('Error', e.message || 'Failed to mark attendance');
+          }
+        };
+        doSubmit();
       }}
     >
       <Text style={styles.submitText}>Submit</Text>
@@ -180,17 +247,17 @@ const renderJoinedSummary = () => (
   </>
 );
 
-    const excuseOptions = [
-  { label: 'Out of station', value: 'Out of station' },
-  { label: 'Health issue', value: 'Health issue' },
-  { label: 'Very genuine', value: 'Very genuine' },
-  { label: 'Excuses', value: 'Excuses' },
-];
+//     const excuseOptions = [
+//   { label: 'Out of station', value: 'Out of station' },
+//   { label: 'Health issue', value: 'Health issue' },
+//   { label: 'Very genuine', value: 'Very genuine' },
+//   { label: 'Excuses', value: 'Excuses' },
+// ];
 
 // 👉 Excuse form with validation
 const renderExcuseForm = () => (
   <>
-    <Text style={styles.cardTitle}>Reason for not joining ?</Text>
+    {/* <Text style={styles.cardTitle}>Reason for not joining ?</Text>
     <RNPickerSelect
       onValueChange={setExcuse}
       value={excuse}
@@ -198,17 +265,32 @@ const renderExcuseForm = () => (
       items={excuseOptions}
       style={pickerStyle}
       useNativeAndroidPickerStyle={false}
-    />
+    /> */}
+    <Text style={styles.summaryText}>You didn't joined today's class ? No Worries It happens sometimes</Text>
     <TouchableOpacity
       style={styles.submitButton}
       onPress={() => {
-        if (!excuse) {
-          alert("⚠️ Please select a reason before submitting!");
-          return;
-        }
+        // if (!excuse) {
+        //   alert("⚠️ Please select a reason before submitting!");
+        //   return;
+        // }
         const todayKey = new Date(Date.now() - (new Date()).getTimezoneOffset()*60000).toISOString().slice(0,10);
-        setAttendanceData(prev => ({ ...prev, [todayKey]: STATUS.ABSENT }));
-        setAttendanceSubmitted(true);
+        const doSubmit = async () => {
+          try {
+            if (!USE_MOCK) {
+              await apiCall(`${API}/admin/markAttendance/${selectedClass.id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'absent' }),
+              });
+            }
+            setAttendanceData(prev => ({ ...prev, [todayKey]: STATUS.ABSENT }));
+            setAttendanceSubmitted(true);
+          } catch (e) {
+            Alert.alert('Error', e.message || 'Failed to mark attendance');
+          }
+        };
+        doSubmit();
       }}
     >
       <Text style={styles.submitText}>Submit</Text>

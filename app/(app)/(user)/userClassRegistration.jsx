@@ -1,9 +1,10 @@
 import { useAuth } from "@/app/contexts/AuthContext";
+import { API } from '@env';
 import { router } from 'expo-router';
 import React from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-const API = "https://streak-app-uxyv.onrender.com";
-const USE_MOCK = true; // Toggle mocked enroll API
+
+const USE_MOCK = false; // Toggle mocked enroll API
 
 const userClassRegistration = () => {
 
@@ -17,31 +18,31 @@ const userClassRegistration = () => {
       }
 
       
-      console.log("Calling Join Class API ----- @API" , `${API}/user/enroll/${code}`);
-      if (USE_MOCK) {
-        // Expected backend API (commented)
-        // POST `${API}/user/enroll/:code`
-        // Headers: Authorization: Bearer <access_token>
-        // Response 200:
-        // {
-        //   "class": {
-        //     "id": string,
-        //     "name": string,
-        //     "class_code": string,
-        //     "email": string,
-        //     "phone": string
-        //   },
-        //   "message": "enrolled"
-        // }
-        const classResponse = {
-          class: { id: 'c_101', name: 'Math 101', class_code: code.toUpperCase(), email: 'math@class.com', phone: '9999999999' },
-          message: 'enrolled'
-        };
-        console.log("USER_CLASS_REGISTRATION (mock) , response ", classResponse);
-        router.replace('/(app)/(user)/userClassEnrolled');
-        alert('Successfully joined the class!');
-        return;
-      }
+      // console.log("Calling Join Class API ----- @API" , `${API}/user/enroll/${code}`);
+      // if (USE_MOCK) {
+      //   // Expected backend API (commented)
+      //   // POST `${API}/user/enroll/:code`
+      //   // Headers: Authorization: Bearer <access_token>
+      //   // Response 200:
+      //   // {
+      //   //   "class": {
+      //   //     "id": string,
+      //   //     "name": string,
+      //   //     "class_code": string,
+      //   //     "email": string,
+      //   //     "phone": string
+      //   //   },
+      //   //   "message": "enrolled"
+      //   // }
+      //   const classResponse = {
+      //     class: { id: 'c_101', name: 'Math 101', class_code: code.toUpperCase(), email: 'math@class.com', phone: '9999999999' },
+      //     message: 'enrolled'
+      //   };
+      //   console.log("USER_CLASS_REGISTRATION (mock) , response ", classResponse);
+      //   router.replace('/(app)/(user)/userClassEnrolled');
+      //   alert('Successfully joined the class!');
+      //   return;
+      // }
 
       const classResponse = await apiCall(`${API}/user/enroll/${code}`,{
         method : "POST",
