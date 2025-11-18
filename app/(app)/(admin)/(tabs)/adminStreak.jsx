@@ -1,11 +1,37 @@
-import React from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-// import { ScrollView } from 'react-native-gesture-handler';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import RNPickerSelect from 'react-native-picker-select';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { useColorScheme } from '@/hooks/useColorScheme';
+// import { API } from '@env';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import * as Animatable from 'react-native-animatable';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useClass } from '../../../contexts/ClassContext';
 
+const STATUS = {
+  ABSENT: 0,
+  PRESENT: 1,
+  OTHER: 2,
+};
+
+const getStatusColor = (status) => {
+  switch (status) {
+    case STATUS.PRESENT: return "#22c55e";
+    case STATUS.ABSENT: return "#ef4444";
+    case STATUS.OTHER: return "#3b82f6";
+    default: return "#d1d5db";
+  }
+};
+
+const weekdays = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
 const adminStreak = () => {
+  const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+  const palette = colorScheme === 'dark'
+    ? { bg:'#0b0f14', card:'#0f172a', text:'#e5e7eb', sub:'#94a3b8', border:'#1f2937' }
+    : { bg:'#f9fafb', card:'#ffffff', text:'#111827', sub:'#374151', border:'#e5e7eb' };
   const [isjoined, setJoined] = React.useState(null); 
   const [attendanceSubmitted, setAttendanceSubmitted] = React.useState(false); // new
   const [todayNote, setTodayNote] = React.useState("");
@@ -13,6 +39,89 @@ const adminStreak = () => {
   const [isReportView, setIsReportView] = React.useState(null); 
   const [selectedTime, setSelectedTime] = React.useState(new Date());
   const [showTimePicker, setShowTimePicker] = React.useState(false);
+  const [currentMonth, setCurrentMonth] = React.useState({present:0,absent:0,other:0});
+  const [currentYear, setCurrentYear] = React.useState({present:0,absent:0,other:0});
+  const API = 'https://streak-app-uxyv.onrender.com';
+  // Graph state (mock data for admin)
+  const [attendanceData, setAttendanceData] = useState({});
+  const { apiCall } = useAuth();
+  const { selectedClass } = useClass();
+  const USE_MOCK = false;
+
+  const year = 2025;
+  const days = useMemo(() => {
+    const list = [];
+    for (let i = 0; i < 365; i++) list.push(new Date(year, 0, 1 + i));
+    return list;
+  }, []);
+
+  const weeks = useMemo(() => {
+    const out = [];
+    let w = [];
+    days.forEach((d) => {
+      w.push(d);
+      if (w.length === 7) { out.push(w); w = []; }
+    });
+    return out;
+  }, [days]);
+
+  const monthMarkers = useMemo(() => {
+    const markers = [];
+    weeks.forEach((week, idx) => {
+      const firstDay = week[0];
+      if (firstDay.getDate() <= 7) markers.push({ month: months[firstDay.getMonth()], weekIndex: idx });
+    });
+    return markers;
+  }, [weeks]);
+
+  const formatDate = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
+  // Load calendar and prevent re-marking if already marked today
+  useEffect(() => {
+    const loadCalendar = async () => {
+      if (!selectedClass) return;
+      try {
+        if (USE_MOCK) return;
+        const res = await apiCall(`${API}/admin/calendar/${selectedClass.id}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        const mapped = {};
+        (res?.calendar || []).forEach(({ date, status }) => {
+          const s = status === 'present' ? STATUS.PRESENT : status === 'absent' ? STATUS.ABSENT : STATUS.OTHER;
+          mapped[date] = s;
+        });
+        setAttendanceData(mapped);
+
+        // Prevent re-marking if today exists
+        const todayKey = new Date(Date.now() - (new Date()).getTimezoneOffset()*60000).toISOString().slice(0,10);
+        const t = mapped[todayKey];
+        if (t !== undefined) {
+          setAttendanceSubmitted(true);
+          setJoined(t === STATUS.PRESENT);
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+    loadCalendar();
+  }, [selectedClass]);
+
+  const handleDayPress = (date) => {
+    const key = formatDate(date);
+    const status = attendanceData[key] ?? null;
+    let message;
+    if (status === STATUS.PRESENT) message = "✅ Present";
+    else if (status === STATUS.ABSENT) message = "❌ Absent";
+    else if (status === STATUS.OTHER) message = "ℹ️ Other (Genuine Reason)";
+    else message = "No data available";
+    Alert.alert(`Date: ${key}`, message);
+  };
 
   const todayDate = new Date().toLocaleDateString();
   const formatTime = (date) => {
@@ -39,6 +148,27 @@ const adminStreak = () => {
   },
 };
 
+  const reportData = async () => {
+    
+    const personalReport = await apiCall(`${API}/admin/personalReport/${selectedClass.id}`,{
+      method: `GET`,
+      headers: {"Content-Type": "application/json"},
+    });
+    let cm,cy ;
+    cm = personalReport.personal_report.current_month; cy = personalReport.personalReport.current_year;
+    setCurrentMonth({
+      present: cm.present,
+      absent: cm.absent,
+      other: cm.not_marked,
+    });
+    setCurrentYear({
+      present: cy.present,
+      absent: cy.absent,
+      other: cy.not_marked,
+    });
+  }
+
+
   // 👉 Joined summary with validation
 const renderJoinedSummary = () => (
   <>
@@ -46,16 +176,16 @@ const renderJoinedSummary = () => (
     <Text style={styles.summaryText}>You have joined today's class. Great job!</Text>
 
     {/* Note input */}
-    <TextInput
+    {/* <TextInput
       style={styles.inputBox}
       placeholder="Any notes for today?"
       value={todayNote}
       onChangeText={setTodayNote}
       multiline
-    />
+    /> */}
 
     {/* Time spent selector */}
-    <TouchableOpacity
+    {/* <TouchableOpacity
       style={styles.inputBox}
       onPress={() => setShowTimePicker(true)}
     >
@@ -64,9 +194,9 @@ const renderJoinedSummary = () => (
           ? `Time spent: ${formatTime(selectedTime)}`
           : "Select time spent"}
       </Text>
-    </TouchableOpacity>
+    </TouchableOpacity> */}
 
-    {showTimePicker && (
+    {/* {showTimePicker && (
       <DateTimePicker
       
         value={selectedTime}
@@ -78,21 +208,38 @@ const renderJoinedSummary = () => (
           if (date) setSelectedTime(date);
         }}
       />
-    )}
+    )} */}
 
     {/* Submit with validation */}
     <TouchableOpacity
       style={styles.submitButton}
+      disabled={attendanceSubmitted}
       onPress={() => {
-        if (!todayNote.trim()) {
-          alert("⚠️ Please enter a note before submitting!");
-          return;
-        }
-        if (!selectedTime) {
-          alert("⚠️ Please select the time spent before submitting!");
-          return;
-        }
-        setAttendanceSubmitted(true);
+        // if (!todayNote.trim()) {
+        //   alert("⚠️ Please enter a note before submitting!");
+        //   return;
+        // }
+        // if (!selectedTime) {
+        //   alert("⚠️ Please select the time spent before submitting!");
+        //   return;
+        // }
+        const todayKey = new Date(Date.now() - (new Date()).getTimezoneOffset()*60000).toISOString().slice(0,10);
+        const doSubmit = async () => {
+          try {
+            if (!USE_MOCK) {
+              await apiCall(`${API}/admin/markAttendance/${selectedClass.id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'present' }),
+              });
+            }
+            setAttendanceData(prev => ({ ...prev, [todayKey]: STATUS.PRESENT }));
+            setAttendanceSubmitted(true);
+          } catch (e) {
+            Alert.alert('Error', e.message || 'Failed to mark attendance');
+          }
+        };
+        doSubmit();
       }}
     >
       <Text style={styles.submitText}>Submit</Text>
@@ -100,17 +247,17 @@ const renderJoinedSummary = () => (
   </>
 );
 
-    const excuseOptions = [
-  { label: 'Out of station', value: 'Out of station' },
-  { label: 'Health issue', value: 'Health issue' },
-  { label: 'Very genuine', value: 'Very genuine' },
-  { label: 'Excuses', value: 'Excuses' },
-];
+//     const excuseOptions = [
+//   { label: 'Out of station', value: 'Out of station' },
+//   { label: 'Health issue', value: 'Health issue' },
+//   { label: 'Very genuine', value: 'Very genuine' },
+//   { label: 'Excuses', value: 'Excuses' },
+// ];
 
 // 👉 Excuse form with validation
 const renderExcuseForm = () => (
   <>
-    <Text style={styles.cardTitle}>Reason for not joining ?</Text>
+    {/* <Text style={styles.cardTitle}>Reason for not joining ?</Text>
     <RNPickerSelect
       onValueChange={setExcuse}
       value={excuse}
@@ -118,15 +265,32 @@ const renderExcuseForm = () => (
       items={excuseOptions}
       style={pickerStyle}
       useNativeAndroidPickerStyle={false}
-    />
+    /> */}
+    <Text style={styles.summaryText}>You didn't joined today's class ? No Worries It happens sometimes</Text>
     <TouchableOpacity
       style={styles.submitButton}
       onPress={() => {
-        if (!excuse) {
-          alert("⚠️ Please select a reason before submitting!");
-          return;
-        }
-        setAttendanceSubmitted(true);
+        // if (!excuse) {
+        //   alert("⚠️ Please select a reason before submitting!");
+        //   return;
+        // }
+        const todayKey = new Date(Date.now() - (new Date()).getTimezoneOffset()*60000).toISOString().slice(0,10);
+        const doSubmit = async () => {
+          try {
+            if (!USE_MOCK) {
+              await apiCall(`${API}/admin/markAttendance/${selectedClass.id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'absent' }),
+              });
+            }
+            setAttendanceData(prev => ({ ...prev, [todayKey]: STATUS.ABSENT }));
+            setAttendanceSubmitted(true);
+          } catch (e) {
+            Alert.alert('Error', e.message || 'Failed to mark attendance');
+          }
+        };
+        doSubmit();
       }}
     >
       <Text style={styles.submitText}>Submit</Text>
@@ -179,8 +343,8 @@ const renderYearlyReport = () => (
 
 
   return (
-    <ScrollView style={styles.screen}>
-      <Text style={styles.title}> Today's Attendance </Text>
+    <ScrollView style={[styles.screen,{backgroundColor: palette.bg}]} contentContainerStyle={{ paddingBottom: insets.bottom + 24, paddingTop: insets.top }}>
+      <Text style={[styles.title,{color: palette.text}]}> Today's Attendance </Text>
 
       {/* Class Entry */}
       {!attendanceSubmitted && (
@@ -226,9 +390,9 @@ const renderYearlyReport = () => (
       {attendanceSubmitted && renderAttendanceConfirmation()}
 
       {/* Report Section */}
-      <View style={styles.card}>
-          <Text style={styles.cardTitle}>Report</Text>
-          <View style={styles.innerBox}>
+      <View style={[styles.card,{backgroundColor: palette.card, borderWidth:1, borderColor: palette.border}] }>
+          <Text style={[styles.cardTitle,{color: palette.text}]}>Report</Text>
+          <View style={[styles.innerBox,{backgroundColor: colorScheme==='dark' ? '#111827' : '#f3f4f6'}]}>
             <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
               <TouchableOpacity
                 style={[
@@ -254,10 +418,80 @@ const renderYearlyReport = () => (
         </View>
 
         {isReportView !== null && (
-          <View style={styles.card}>
+          <View style={[styles.card,{backgroundColor: palette.card, borderWidth:1, borderColor: palette.border}] }>
             {isReportView ? renderMonthlyReport() : renderYearlyReport()}
           </View>
         )}
+
+        {/* Streak Graph (same as user) */}
+        <View style={[styles.card,{backgroundColor: palette.card, borderWidth:1, borderColor: palette.border}] }>
+          <View style={styles.streakHeader}>
+            <Text style={[styles.cardTitle,{color: palette.text}]}>Streak</Text>
+            <Animatable.View 
+              animation="pulse" 
+              easing="ease-out" 
+              iterationCount="infinite" 
+              style={styles.streakIconWrapper}
+            >
+              <MaterialCommunityIcons name="fire" size={32} color="#ff6b6b" />
+            </Animatable.View>
+          </View>
+          <Text style={[styles.streakCounter,{color: colorScheme==='dark' ? '#fca5a5' : '#ef4444'}]}>🔥 20 Days</Text>
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={{ flexDirection: "column" }}>
+              {/* Month Row */}
+              <View style={styles.monthRow}>
+                <View style={{ width: 46 }} />
+                {weeks.map((_, weekIndex) => {
+                  const marker = monthMarkers.find(m => m.weekIndex === weekIndex);
+                  return (
+                    <View key={weekIndex} style={{ width: 36, alignItems: "center" }}>
+                      {marker ? (
+                        <Text style={styles.monthText}>{marker.month}</Text>
+                      ) : null}
+                    </View>
+                  );
+                })}
+              </View>
+
+              <View style={{ flexDirection: "row" }}>
+                {/* Weekday labels */}
+                <View style={{ marginRight: 6, width: 46 }}>
+                  {weekdays.map((day) => (
+                    <View key={day} style={{ height: 36, justifyContent: "center" }}>
+                      <Text style={styles.weekdayText}>{day}</Text>
+                    </View>
+                  ))}
+                </View>
+
+                {/* Contribution Grid */}
+                <View style={{ flexDirection: "row" }}>
+                  {weeks.map((week, weekIndex) => (
+                    <View key={weekIndex} style={styles.weekColumn}>
+                      {week.map((date, dayIndex) => {
+                        const key = formatDate(date);
+                        const status = attendanceData[key] ?? null;
+                        return (
+                          <Pressable
+                            key={dayIndex}
+                            onPress={() => handleDayPress(date)}
+                          >
+                            <View
+                              style={[styles.dayBox, { backgroundColor: getStatusColor(status) }]}
+                            >
+                              <Text style={styles.dayText}>{date.getDate()}</Text>
+                            </View>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  ))}
+                </View>
+              </View>
+            </View>
+          </ScrollView>
+        </View>
     </ScrollView>
   );
 };
@@ -379,6 +613,37 @@ const styles = StyleSheet.create({
     color: "#ef4444",
     marginVertical: 12,
     textAlign: "center",
+  },
+  monthRow: {
+    flexDirection: "row",
+    marginBottom: 6,
+    alignItems: "center",
+  },
+  monthText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#374151",
+  },
+  weekdayText: {
+    fontSize: 12,
+    color: "#6b7280",
+  },
+  weekColumn: {
+    flexDirection: "column",
+    marginHorizontal: 1,
+  },
+  dayBox: {
+    width: 36,
+    height: 36,
+    margin: 1,
+    borderRadius: 6,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  dayText: {
+    fontSize: 12,
+    fontWeight: "bold",
+    color: "#111827",
   },
   monthRow: {
     flexDirection: "row",

@@ -1,5 +1,6 @@
 // import { apiCall } from '@/app/utils/apiHelper';
 import { useClass } from '@/app/contexts/ClassContext';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import { Link, router } from 'expo-router';
 import React, { useEffect } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -18,14 +19,14 @@ const UserClassEnrolled = () => {
     const {apiCall} = useAuth();
     const API_URL = 'https://streak-app-uxyv.onrender.com';
 
+    const colorScheme = useColorScheme();
+
     const fetchClasses = async () => {
         try {
 
             const data = await apiCall(`${API_URL}/user/classList`,{
                 method: 'GET' ,
                 headers: { "Content-Type": "application/json" },
-                // authContext,
-                // useAuth,
         });
 
             
@@ -135,9 +136,9 @@ const UserClassEnrolled = () => {
     }
 
     return (
-        <View style={[styles.safeContainer, { paddingTop: insets.top }]}>
+        <View style={[styles.safeContainer, { paddingTop: insets.top, backgroundColor: colorScheme==='dark' ? '#0b0f14' : '#f5f5f5' }]}>
             <View style={styles.container}>
-                <Text style={styles.title}>My Classes</Text>
+                <Text style={[styles.title,{color: colorScheme==='dark' ? '#e5e7eb' : '#111827'}]}>My Classes</Text>
                 
                 {classes.length === 0 ? (
                     <View style={styles.centerContainer}>
@@ -146,7 +147,7 @@ const UserClassEnrolled = () => {
                     </View>
                 ) : (
                     <ScrollView 
-                        contentContainerStyle={styles.scrollContainer}
+                        contentContainerStyle={[styles.scrollContainer, { paddingBottom: insets.bottom + 24 }]}
                         refreshControl={
                             <RefreshControl 
                                 refreshing={refreshing} 
@@ -157,8 +158,8 @@ const UserClassEnrolled = () => {
                     >
                         {classes.map((item) => (
                             <Pressable
-                                key={item}
-                                style={styles.classCard}
+                                key={item.id?.toString()}
+                                style={[styles.classCard,{ backgroundColor: colorScheme==='dark' ? '#0f172a' : 'white', borderColor: colorScheme==='dark' ? '#1f2937' : '#e5e7eb', borderWidth: 1 }]}
                                 onPress={() => redirectToClass(item)}
                             >
                                 {/* <Text style={styles.classText}>{item.title}</Text>
@@ -168,19 +169,17 @@ const UserClassEnrolled = () => {
                                 {item.joined_at && (
                                     <Text style={styles.joinedDate}>Joined: {new Date(item.joined_at).toLocaleDateString()}</Text>
                                 )} */}
-                                <Text style={styles.classText}>
-                                    {item.title}
+                                <Text style={[styles.classText,{color: colorScheme==='dark' ? '#e5e7eb' : '#111827'}]}>
+                                    {item.title || item.name || 'Untitled Class'}
                                 </Text>
-                                <Text style={styles.classCode}>
-                                Code: {item.ClassCode}
+                                <Text style={[styles.classCode,{color: colorScheme==='dark' ? '#93c5fd' : '#666'}]}>
+                                Code: {item.class_code || item.ClassCode || item.code || 'N/A'}
                                 </Text>
-                                {/* <View style={styles.classDetails}>
-                                <Text style={styles.classDetailText}>📧 {item.Email}</Text>
-                                <Text style={styles.classDetailText}>📱 {item.Phone}</Text>
-                                </View> */}
-                                <Text style={styles.joinedDate}>
-                                Joined: {new Date(item.joined_at).toLocaleDateString()}
-                                </Text>
+                                {item.joined_at && (
+                                  <Text style={[styles.joinedDate,{color: colorScheme==='dark' ? '#94a3b8' : '#999'}]}>
+                                    Joined: {new Date(item.joined_at).toLocaleDateString()}
+                                  </Text>
+                                )}
                             </Pressable>
                         ))}
                     </ScrollView>

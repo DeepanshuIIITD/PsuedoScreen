@@ -1,15 +1,23 @@
 
       // quick summary /user/myClasses/:id, token header=bearer walah
-      //  
+      //   LOG  Quick Summary  {"quick_summary": {"current_week_absent": 0, "current_week_not_marked": 0, "current_week_present": 0, "today_status": "Not marked", "total_absent": 0, "total_not_marked": 0, "total_present": 2}}
 
+      // /user/calendar/${classid}
+      //Calendar looks like this  {"calendar": [{"date": "2025-09-21", "status": "present"}, {"date": "2025-11-07", "status": "present"}], "class_id": 1, "user_id": 1}
 
+import { useColorScheme } from '@/hooks/useColorScheme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // for importing class respective details
+import { useAuth } from '@/app/contexts/AuthContext';
 import { useClass } from '@/app/contexts/ClassContext';
+// import { API } from '@env';
+
+const USE_MOCK = false; // Toggle mocked streak APIs
 
 // Status codes for clarity
 // 0 = Absent, 1 = Present, 2 = Other
@@ -36,16 +44,46 @@ const months = [
 ];
 
 const UserHome = () => {
-  const [firstName] = useState("Deepanshu");
-  const [attendanceData, setAttendanceData] = useState({}); 
+  const { user, logout, apiCall } = useAuth();
+  const colorScheme = useColorScheme();
+  const palette = colorScheme === 'dark'
+    ? {
+        bg: '#0b0f14',
+        card: '#0f172a',
+        text: '#e5e7eb',
+        subtext: '#94a3b8',
+        border: '#1f2937',
+        menuBg: '#0f172a',
+      }
+    : {
+        bg: '#f9fafb',
+        card: '#ffffff',
+        text: '#111827',
+        subtext: '#374151',
+        border: '#e5e7eb',
+        menuBg: '#ffffff',
+      };
+  const firstName = user?.firstName || user?.userName || "User";
+  // Attendance from context so updates reflect across screens
+  const { selectedClass, attendanceData, setAttendanceData } = useClass();
   // for safeareview testing purpose only
   const insets = useSafeAreaInsets();
 
   // for adding profile icon logic 
   const [menuVisible, setMenuVisible] = useState(false);
-  // for class specific information
-  const {selectedClass} = useClass();
+  // class comes from context above
   const [loading, setIsLoading] = useState(true);
+  const [streak, setStreak] = useState(20);
+  const [bestStreak, setBestStreak] = useState(0);
+  const [todayStatus, setTodayStatus ] = useState("Not marked");
+  const [totalPresent, setTotalPresent ] = useState(0);
+  const [totalAbsent, setTotalAbsent] = useState(0);
+  const [totalUnMarked, setTotalUnMarked] = useState(0);
+  const [currentWeekPresent, setCurrentWeekPresent] = useState(0);
+  const [currentWeekAbsent, setCurrentWeekAbsent] = useState(0);
+  const [currentWeekUnMarked, setCurrentWeekUnMarked] = useState(0);
+  const API = 'https://streak-app-uxyv.onrender.com';
+
   console.log("USER HOME --- selected class is ", selectedClass);
 
   const year = 2025;
@@ -70,61 +108,45 @@ const UserHome = () => {
   });
 
   // summary part 
-  // Helper to calculate best streak
-const getBestStreak = (attendanceData) => {
-  let best = 0, current = 0;
-  const dates = Object.keys(attendanceData).sort(); // sorted YYYY-MM-DD
-  dates.forEach((date) => {
-    if (attendanceData[date] === STATUS.PRESENT) {
-      current++;
-      best = Math.max(best, current);
-    } else {
-      current = 0;
-    }
-  });
-  return best;
-};
 
 // Helper to calculate total summary
-const getTotalSummary = (attendanceData) => {
-  let present = 0, absent = 0, other = 0;
-  Object.values(attendanceData).forEach((status) => {
-    if (status === STATUS.PRESENT) present++;
-    else if (status === STATUS.ABSENT) absent++;
-    else if (status === STATUS.OTHER) other++;
+const getTotalSummary = async () => {
+  const resp = await apiCall(`${API}/user/quickSummary/${selectedClass.id}`,{
+    method: `GET`,
+    headers: { 'Content-Type': 'application/json' },
   });
-  return { present, absent, other };
+  console.log("Quick Summary ",resp);
+
+  const calendar = await apiCall(`${API}/user/calendar/${selectedClass.id}`,{
+    method: `GET`,
+    headers: { 'Content-Type': 'application/json' },
+    });
+
+    console.log("Calendar looks like this ", calendar);
+  
+  setTotalPresent(resp.quick_summary.total_present);
+  setTotalAbsent(resp.quick_summary.total_absent);
+  setTotalUnMarked(resp.quick_summary.total_not_marked);
+  setCurrentWeekPresent(resp.quick_summary.current_week_present);
+  setCurrentWeekAbsent(resp.quick_summary.current_week_absent);
+  setCurrentWeekUnMarked(resp.quick_summary.current_week_not_marked);
+  setTodayStatus(resp.quick_summary.today_status);
 };
 
-// Helper to calculate current week summary
-const getCurrentWeekSummary = (attendanceData) => {
-  let present = 0, absent = 0, other = 0;
-  const today = new Date();
-  const startOfWeek = new Date(today);
-  startOfWeek.setDate(today.getDate() - today.getDay() + 1); // Monday
-
-  Object.entries(attendanceData).forEach(([date, status]) => {
-    const d = new Date(date);
-    if (d >= startOfWeek && d <= today) {
-      if (status === STATUS.PRESENT) present++;
-      else if (status === STATUS.ABSENT) absent++;
-      else if (status === STATUS.OTHER) other++;
-    }
-  });
-
-    return { present, absent, other };
-  };
 
 // Helper for percentages
-const getPercentages = (summary) => {
-  const total = summary.present + summary.absent + summary.other;
+const getPercentages = async () => {
+  const total = totalPresent + totalAbsent + totalUnMarked;
   if (total === 0) return { present: 0, absent: 0, other: 0 };
 
+  
+
   return {
-    present: ((summary.present / total) * 100).toFixed(1),
-    absent: ((summary.absent / total) * 100).toFixed(1),
-    other: ((summary.other / total) * 100).toFixed(1),
+    present: ((totalPresent / total) * 100).toFixed(1),
+    absent: ((totalAbsent / total) * 100).toFixed(1),
+    other: ((totalUnMarked / total) * 100).toFixed(1),
     };
+
   };
 
 
@@ -137,33 +159,38 @@ const getPercentages = (summary) => {
     }
   });
 
-  // 🔹 Simulated backend fetch
+  // 🔹 Fetch streak numbers without calling APIs during render
   useEffect(() => {
-    // Example: Later replace this with API call
-    // const fetchData = async () => {
-    //   // Simulated data: key = YYYY-MM-DD, value = status
-    //   const data = {
-    //     "2025-01-01": STATUS.PRESENT,
-    //     "2025-01-02": STATUS.ABSENT,
-    //     "2025-01-03": STATUS.OTHER,
-    //     "2025-01-04": STATUS.PRESENT,
-    //   };
-    //   setAttendanceData(data);
-    // };
-    // fetchData();
-    if (selectedClass) {
-    setIsLoading(false); // Just mark ready once class is set
-  }
-  }, [selectedClass]);
+    const run = async () => {
+      if (!selectedClass) return;
+      try {
+          // Best streak for selected class
+          const resp = await apiCall(`${API}/user/streak/${selectedClass.id}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+          });
+          console.log(resp);
+          const best = resp.bestStreak;
+          const current = resp.currentStreak;
+          setBestStreak(best);
+          setStreak(current);
 
-  // Helper to format date keys
-  const formatDate = (date) => {
-    return date.toISOString().split("T")[0]; // YYYY-MM-DD
-  };
+      } catch (e) {
+        setBestStreak(0);
+        setStreak(0);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    run();
+    // also recompute when attendance map changes in mock mode
+  }, [selectedClass, attendanceData]);
+
+  // no helper function for date keys; use ISO local-adjusted inline where needed
 
   // Handle tap on a cell
   const handleDayPress = (date) => {
-    const key = formatDate(date);
+    const key = new Date(date.getTime() - date.getTimezoneOffset()*60000).toISOString().slice(0,10);
     const status = attendanceData[key] ?? null;
 
     let message;
@@ -178,44 +205,81 @@ const getPercentages = (summary) => {
 
   // profile button logical functions
   const handleLogout = async () => {
-    console.log("You will be logout from using this funciton");
-    
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to logout?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Logout",
+          style: "destructive",
+          onPress: async () => {
+            await logout();
+          }
+        }
+      ]
+    );
   };
 
   const handleEditProfile = async () => {
-    console.log("Your profile will be updated using this funciton");
+    setMenuVisible(false);
+    router.push("/(app)/(user)/editProfile");
   };
 
   const handleAboutPage = async () => {
-    console.log("You will be redirected to about page using this funciton");
+    setMenuVisible(false);
+    router.push("/(app)/(user)/about");
   };
-  
-  
+
 
   return (
-    <View style={[styles.safeContainer,{paddingTop:insets.top} ]}>
+    <View style={[styles.safeContainer,{paddingTop:insets.top, backgroundColor: palette.bg} ]}>
       {/* header sepearate from scroll view */}
       <View style={styles.headerContainer}>
-      <Text style={styles.title}>👋 Hi, {firstName}!</Text>
+      <Text style={[styles.title,{color: palette.text}]}>👋 Hi, {firstName}!</Text>
       <TouchableOpacity onPress={() => setMenuVisible(!menuVisible)}>
         <MaterialCommunityIcons name="account-circle" size={32} color="#ff6b6b" />
       </TouchableOpacity>
 
       {menuVisible && (
-        <View style={styles.menuContainer}>
-          <TouchableOpacity style={styles.menuItem} onPress={() => handleEditProfile()}>
-            <Text>Edit Profile</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem} onPress={() => handleLogout()}>
-            <Text>Logout</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem} onPress={() => handleAboutPage()}>
-            <Text>About Application</Text>
-          </TouchableOpacity>
-        </View>
+        <>
+          <TouchableOpacity
+            style={styles.menuOverlay}
+            onPress={() => setMenuVisible(false)}
+            activeOpacity={1}
+          />
+          <View style={[styles.menuContainer,{backgroundColor: palette.menuBg, borderColor: palette.border}] }>
+            <TouchableOpacity 
+              style={styles.menuItem} 
+              onPress={() => handleEditProfile()}
+            >
+              <MaterialCommunityIcons name="account-edit" size={20} color="#374151" style={styles.menuIcon} />
+              <Text style={[styles.menuItemText,{color: palette.text}]}>Edit Profile</Text>
+            </TouchableOpacity>
+            <View style={styles.menuDivider} />
+            <TouchableOpacity 
+              style={styles.menuItem} 
+              onPress={() => handleAboutPage()}
+            >
+              <MaterialCommunityIcons name="information" size={20} color="#374151" style={styles.menuIcon} />
+              <Text style={[styles.menuItemText,{color: palette.text}]}>About Application</Text>
+            </TouchableOpacity>
+            <View style={styles.menuDivider} />
+            <TouchableOpacity 
+              style={[styles.menuItem, styles.menuItemDanger]} 
+              onPress={() => handleLogout()}
+            >
+              <MaterialCommunityIcons name="logout" size={20} color="#ef4444" style={styles.menuIcon} />
+              <Text style={[styles.menuItemText, styles.menuItemTextDanger]}>Logout</Text>
+            </TouchableOpacity>
+          </View>
+        </>
       )}
     </View>
-    <ScrollView style={[styles.screen]}>
+    <ScrollView style={[styles.screen]} contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}>
       
       {/* <View style={flexDirection = 'row' }  >
         <MaterialCommunityIcons name='profile' size={32} color="#ff6b6b"/>
@@ -225,7 +289,7 @@ const getPercentages = (summary) => {
 
       {/* Welcome Box */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Welcome to {selectedClass.name}</Text>
+        <Text style={styles.cardTitle}>Welcome to {selectedClass?.name || '—'}</Text>
       </View>
 
       {/* Quick Summary */}
@@ -233,23 +297,26 @@ const getPercentages = (summary) => {
         <Text style={styles.cardTitle}>Quick Summary</Text>
         <View style={styles.innerBox}>
           {(() => {
-            const bestStreak = getBestStreak(attendanceData);
-            const totalSummary = getTotalSummary(attendanceData);
-            const weekSummary = getCurrentWeekSummary(attendanceData);
-            const percentages = getPercentages(totalSummary);
+            const bestStreakValue = bestStreak;
+            const total = totalPresent + totalAbsent + totalUnMarked;
+            const percentages = total === 0 ? {present: 0, absent: 0, other: 0} : {
+              present: ((totalPresent/total)*100).toFixed(1),
+              absent: ((totalAbsent/total)*100).toFixed(1),
+              other: ((totalUnMarked/total)*100).toFixed(1),
+            };
 
             return (
               <>
-                <Text style={styles.summaryText}>🔥 Best Streak: {bestStreak} days</Text>
+                <Text style={styles.summaryText}>🔥 Best Streak: {bestStreakValue} days</Text>
 
                 <Text style={styles.summarySubTitle}>📅 Current Week</Text>
                 <Text style={styles.summaryText}>
-                  Present: {weekSummary.present} | Absent: {weekSummary.absent} | Other: {weekSummary.other}
+                  Present: {currentWeekPresent} | Absent: {currentWeekAbsent} | Other: {currentWeekUnMarked}
                 </Text>
 
                 <Text style={styles.summarySubTitle}>📊 Total</Text>
                 <Text style={styles.summaryText}>
-                  Present: {totalSummary.present} | Absent: {totalSummary.absent} | Other: {totalSummary.other}
+                  Present: {totalPresent} | Absent: {totalAbsent} | Other: {totalUnMarked}
                 </Text>
 
                 <Text style={styles.summarySubTitle}>📈 Percentages</Text>
@@ -276,14 +343,14 @@ const getPercentages = (summary) => {
             <MaterialCommunityIcons name="fire" size={32} color="#ff6b6b" />
           </Animatable.View>
         </View>
-        <Text style={styles.streakCounter}>🔥 20 Days</Text>
+        <Text style={styles.streakCounter}>🔥 {streak} Days</Text>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={{ flexDirection: "column" }}>
             
             {/* Month Row */}
             <View style={styles.monthRow}>
-              <View style={{ width: 36 }} /> 
+              <View style={{ width: 46 }} /> 
               {weeks.map((_, weekIndex) => {
                 const marker = monthMarkers.find(m => m.weekIndex === weekIndex);
                 return (
@@ -298,7 +365,7 @@ const getPercentages = (summary) => {
 
             <View style={{ flexDirection: "row" }}>
               {/* Weekday labels */}
-              <View style={{ marginRight: 6 }}>
+              <View style={{ marginRight: 6, width: 46 }}>
                 {weekdays.map((day) => (
                   <View key={day} style={{ height: 36, justifyContent: "center" }}>
                     <Text style={styles.weekdayText}>{day}</Text>
@@ -311,7 +378,7 @@ const getPercentages = (summary) => {
                 {weeks.map((week, weekIndex) => (
                   <View key={weekIndex} style={styles.weekColumn}>
                     {week.map((date, dayIndex) => {
-                      const key = formatDate(date);
+                      const key = new Date(date.getTime() - date.getTimezoneOffset()*60000).toISOString().slice(0,10);
                       const status = attendanceData[key] ?? null;
                       return (
                         <Pressable
@@ -347,7 +414,7 @@ export default UserHome;
 const styles = StyleSheet.create({
   safeContainer:{
     flex: 1,
-    backgroundColor: "green",
+    backgroundColor: "#f9fafb",
   },
   screen: {
     flex: 1,
@@ -451,26 +518,63 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     padding: 16,
-    // suggestions
-    position: "relative", // allows absolutely positioned menu to align correctly
+    position: "relative",
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
+    zIndex: 1000,
+  },
+  menuOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 998,
   },
   menuContainer: {
     position: "absolute",
-    top: 50,
+    top: 60,
     right: 10,
-     backgroundColor: "#fff", // fixed invalid hex in your code ("#f3f97bff")
-    borderRadius: 10,
+    backgroundColor: "#fff",
+    borderRadius: 12,
     shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    padding: 10,
-    elevation: 3,
-    elevation: 10, // ⬆️ for Android layering
-    zIndex: 9999,   // ⬆️ for iOS layering
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    elevation: 10,
+    zIndex: 9999,
+    minWidth: 200,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
   },
   menuItem: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  menuItemDanger: {
+    // Special styling for logout
+  },
+  menuIcon: {
+    marginRight: 12,
+  },
+  menuItemText: {
+    fontSize: 16,
+    color: "#374151",
+    fontWeight: "500",
+  },
+  menuItemTextDanger: {
+    color: "#ef4444",
+  },
+  menuDivider: {
+    height: 1,
+    backgroundColor: "#e5e7eb",
+    marginVertical: 4,
   },
 
 });

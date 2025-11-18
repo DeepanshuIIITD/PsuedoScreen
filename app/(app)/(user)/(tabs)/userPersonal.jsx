@@ -1,9 +1,16 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 // import { ScrollView } from 'react-native-gesture-handler';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import RNPickerSelect from 'react-native-picker-select';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { useClass } from '@/app/contexts/ClassContext';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+// const API = "https://streak-app-uxyv.onrender.com";
+// import { API } from '@env';
+const USE_MOCK = false; // Toggle mocked attendance APIs
+
+
+// post /user/markAttendance/${classid}. payload (status= 'present')
 
 
 const userPersonal = () => {
@@ -14,6 +21,10 @@ const userPersonal = () => {
   const [isReportView, setIsReportView] = React.useState(null); 
   const [selectedTime, setSelectedTime] = React.useState(new Date());
   const [showTimePicker, setShowTimePicker] = React.useState(false);
+  const API = 'https://streak-app-uxyv.onrender.com';
+
+  const { user, apiCall } = useAuth();
+  const { selectedClass ,setAttendanceData } = useClass();
 
   const todayDate = new Date().toLocaleDateString();
   const formatTime = (date) => {
@@ -22,8 +33,39 @@ const userPersonal = () => {
     return `${hours}:${minutes}`;
   };
 
+  // If already marked today, disable re-marking
+  React.useEffect(() => {
+    const checkToday = async () => {
+      if (!selectedClass) return;
+      try {
+        if (USE_MOCK) return;
+        const cal = await apiCall(`${API}/user/calendar/${selectedClass.id}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        const todayKey = new Date(Date.now() - (new Date()).getTimezoneOffset()*60000).toISOString().slice(0,10);
+        const todayRec = (cal?.calendar || []).find((c) => c.date === todayKey);
+        if (todayRec) {
+          // Mark submitted and reflect local toggle to show confirmation text
+          setAttendanceSubmitted(true);
+          setJoined(todayRec.status === 'present');
+          // also update shared grid
+          const statusVal = todayRec.status === 'present' ? 1 : todayRec.status === 'absent' ? 0 : 2;
+          setAttendanceData(prev => ({ ...prev, [todayKey]: statusVal }));
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+    checkToday();
+  }, [selectedClass]);
+
   // for safeareview testing purpose only
   const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+  const palette = colorScheme === 'dark'
+    ? { bg:'#0b0f14', card:'#0f172a', text:'#e5e7eb', sub:'#94a3b8', border:'#1f2937' }
+    : { bg:'#f9fafb', card:'#ffffff', text:'#111827', sub:'#374151', border:'#e5e7eb' };
 
 
   const pickerStyle = {
@@ -50,16 +92,16 @@ const renderJoinedSummary = () => (
     <Text style={styles.summaryText}>You have joined today's class. Great job!</Text>
 
     {/* Note input */}
-    <TextInput
+    {/* <TextInput
       style={styles.inputBox}
       placeholder="Any notes for today?"
       value={todayNote}
       onChangeText={setTodayNote}
       multiline
-    />
+    /> */}
 
     {/* Time spent selector */}
-    <TouchableOpacity
+    {/* <TouchableOpacity
       style={styles.inputBox}
       onPress={() => setShowTimePicker(true)}
     >
@@ -82,21 +124,48 @@ const renderJoinedSummary = () => (
           if (date) setSelectedTime(date);
         }}
       />
-    )}
+    )} */}
 
     {/* Submit with validation */}
     <TouchableOpacity
       style={styles.submitButton}
-      onPress={() => {
-        if (!todayNote.trim()) {
-          alert("⚠️ Please enter a note before submitting!");
-          return;
+      disabled={attendanceSubmitted}
+      onPress={async () => {
+        // if (!todayNote.trim()) {
+        //   alert("⚠️ Please enter a note before submitting!");
+        //   return;
+        // }
+        // if (!selectedTime) {
+        //   alert("⚠️ Please select the time spent before submitting!");
+        //   return;
+        // }
+        // Submit attendance (Present)
+        try {
+          if (USE_MOCK) {
+            // Expected backend API (commented)
+            // POST `${API}/user/checkin`
+            // Body:
+            // { "classId": string, "status": "present" | "absent", "note": string, "timeSpentMinutes": number, "excuse"?: string }
+            // Response 200:
+            // { "success": true, "streak": number }
+            const todayKey = new Date().toISOString().split('T')[0];
+            setAttendanceData(prev => ({ ...prev, [todayKey]: 1 }));
+            setAttendanceSubmitted(true);
+          } else {
+            // const minutes = Math.max(0, Math.round((selectedTime.getHours()*60) + selectedTime.getMinutes()));
+            await apiCall(`${API}/user/markAttendance/${selectedClass.id}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              // body: JSON.stringify({ classId: 'selected_class_id', status: 'present', note: todayNote, timeSpentMinutes: minutes })
+              body: JSON.stringify({status: 'present'})
+            });
+            const todayKey = new Date().toISOString().split('T')[0];
+            setAttendanceData(prev => ({ ...prev, [todayKey]: 1 }));
+            setAttendanceSubmitted(true);
+          }
+        } catch (e) {
+          alert(`Failed to submit: ${e.message}`);
         }
-        if (!selectedTime) {
-          alert("⚠️ Please select the time spent before submitting!");
-          return;
-        }
-        setAttendanceSubmitted(true);
       }}
     >
       <Text style={styles.submitText}>Submit</Text>
@@ -114,7 +183,7 @@ const renderJoinedSummary = () => (
 // 👉 Excuse form with validation
 const renderExcuseForm = () => (
   <>
-    <Text style={styles.cardTitle}>Reason for not joining ?</Text>
+    {/* <Text style={styles.cardTitle}>Reason for not joining ?</Text>
     <RNPickerSelect
       onValueChange={setExcuse}
       value={excuse}
@@ -122,15 +191,36 @@ const renderExcuseForm = () => (
       items={excuseOptions}
       style={pickerStyle}
       useNativeAndroidPickerStyle={false}
-    />
+    /> */}
     <TouchableOpacity
       style={styles.submitButton}
-      onPress={() => {
-        if (!excuse) {
-          alert("⚠️ Please select a reason before submitting!");
-          return;
+      onPress={async () => {
+        // if (!excuse) {
+        //   alert("⚠️ Please select a reason before submitting!");
+        //   return;
+        // }
+        try {
+          if (USE_MOCK) {
+            // Expected backend API (commented)
+            // POST `${API}/user/checkin`
+            // Body: { "classId": string, "status": "absent", "excuse": string }
+            // Response 200: { "success": true }
+            const todayKey = new Date().toISOString().split('T')[0];
+            setAttendanceData(prev => ({ ...prev, [todayKey]: 0 }));
+            setAttendanceSubmitted(true);
+          } else {
+            await apiCall(`${API}/user/markAttendance/${selectedClass.id}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({status: 'absent'})
+            });
+            const todayKey = new Date().toISOString().split('T')[0];
+            setAttendanceData(prev => ({ ...prev, [todayKey]: 0 }));
+            setAttendanceSubmitted(true);
+          }
+        } catch (e) {
+          alert(`Failed to submit: ${e.message}`);
         }
-        setAttendanceSubmitted(true);
       }}
     >
       <Text style={styles.submitText}>Submit</Text>
@@ -183,14 +273,14 @@ const renderYearlyReport = () => (
 
 
   return (
-    <View style={[styles.safeContainer, {paddingTop:insets.top}]}>
-    <ScrollView style={styles.screen}>
+    <View style={[styles.safeContainer, {paddingTop:insets.top, backgroundColor: palette.bg}]}>
+    <ScrollView style={[styles.screen,{backgroundColor: palette.bg}]} contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}>
       <Text style={styles.title}> Today's Attendance </Text>
 
       {/* Class Entry */}
       {!attendanceSubmitted && (
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Class Entry</Text>
+      <View style={[styles.card,{backgroundColor: palette.card, borderWidth:1, borderColor: palette.border}] }>
+        <Text style={[styles.cardTitle,{color: palette.text}]}>Class Entry</Text>
         <View style={styles.innerBox}>
           <Text style={styles.cardText}>Joined Today's Class ?</Text>
           <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
@@ -224,15 +314,15 @@ const renderYearlyReport = () => (
 
       {/* Show form or confirmation */}
       {!attendanceSubmitted && isjoined !== null && (
-        <View style={styles.card}>
+        <View style={[styles.card,{backgroundColor: palette.card, borderWidth:1, borderColor: palette.border}] }>
           {isjoined ? renderJoinedSummary() : renderExcuseForm()}
         </View>
       )}
       {attendanceSubmitted && renderAttendanceConfirmation()}
 
       {/* Report Section */}
-      <View style={styles.card}>
-          <Text style={styles.cardTitle}>Report</Text>
+      <View style={[styles.card,{backgroundColor: palette.card, borderWidth:1, borderColor: palette.border}] }>
+          <Text style={[styles.cardTitle,{color: palette.text}]}>Report</Text>
           <View style={styles.innerBox}>
             <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
               <TouchableOpacity
@@ -259,7 +349,7 @@ const renderYearlyReport = () => (
         </View>
 
         {isReportView !== null && (
-          <View style={styles.card}>
+          <View style={[styles.card,{backgroundColor: palette.card, borderWidth:1, borderColor: palette.border}] }>
             {isReportView ? renderMonthlyReport() : renderYearlyReport()}
           </View>
         )}

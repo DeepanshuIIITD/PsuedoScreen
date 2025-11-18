@@ -51,7 +51,7 @@ function RootLayoutNav() {
     } else if (user && !inAppGroup) {
       // Redirect to appropriate role home
       if (user.role === 'admin') {
-        router.replace('adminClassSelector');
+        router.replace('/adminClassSelector');
       } else {
         router.replace('/userClassEnrolled');
       }
