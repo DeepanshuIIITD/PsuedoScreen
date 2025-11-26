@@ -21,7 +21,7 @@ const userPersonal = () => {
   const [isReportView, setIsReportView] = React.useState(null); 
   const [selectedTime, setSelectedTime] = React.useState(new Date());
   const [showTimePicker, setShowTimePicker] = React.useState(false);
-  const API = 'https://streak-app-uxyv.onrender.com';
+  const API = 'https://streak-app-production.up.railway.app/root/health-check';
 
   const { user, apiCall } = useAuth();
   const { selectedClass ,setAttendanceData } = useClass();

@@ -17,7 +17,7 @@ const UserClassEnrolled = () => {
     // const authContext = useAuth();
     const { user, access_token } = useAuth(); // Get user and accessToken from auth context\
     const {apiCall} = useAuth();
-    const API_URL = 'https://streak-app-uxyv.onrender.com';
+    const API_URL = 'https://streak-app-production.up.railway.app';
 
     const colorScheme = useColorScheme();
 

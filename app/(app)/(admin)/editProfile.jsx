@@ -17,7 +17,7 @@ const EditProfile = () => {
   const [email, setEmail] = useState(user?.email || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [isSaving, setIsSaving] = useState(false);
-  const API = 'https://streak-app-uxyv.onrender.com';
+  const API = 'https://streak-app-production.up.railway.app';
 
   const handleSave = async () => {
     if (!firstName.trim() || !lastName.trim()) {
@@ -169,7 +169,7 @@ export default EditProfile;
 const styles = StyleSheet.create({
   safeContainer: {
     flex: 1,
-    backgroundColor: "green",
+    backgroundColor: "f9fafb",
   },
   header: {
     flexDirection: "row",

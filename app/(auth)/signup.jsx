@@ -34,7 +34,7 @@ const Signup = () => {
 
   const insets = useSafeAreaInsets();
 
-  const API = 'https://streak-app-uxyv.onrender.com';
+  const API = 'https://streak-app-production.up.railway.app';
   const USE_MOCK = false; // Toggle mocked APIs for OTP + Signup
 
   // Timer effect for resend functionality

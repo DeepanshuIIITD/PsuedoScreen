@@ -22,7 +22,7 @@ const AdminClassSelector = () => {
   const [classes, setClasses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const API = 'https://streak-app-uxyv.onrender.com';
+  const API = 'https://streak-app-production.up.railway.app';
 
   // Fetch classes on component mount
   useEffect(() => {

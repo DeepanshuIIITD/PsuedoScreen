@@ -10,7 +10,7 @@ const userClassRegistration = () => {
 
   const [classCode, setClassCode] = React.useState('');
   const {apiCall} = useAuth();
-  const API = 'https://streak-app-uxyv.onrender.com';
+  const API = 'https://streak-app-production.up.railway.app/root/health-check';
   const redirectToClass = async (code) => {
       // router.push(`/(user)/userHome/${classId}`);
       if(code.trim() === '') {

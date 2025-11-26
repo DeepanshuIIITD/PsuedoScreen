@@ -1,12 +1,12 @@
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 // import { API } from '@env';
+import { useClass } from '@/app/contexts/ClassContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useClass } from '../../../contexts/ClassContext';
 
 const STATUS = {
   ABSENT: 0,
@@ -41,7 +41,7 @@ const adminStreak = () => {
   const [showTimePicker, setShowTimePicker] = React.useState(false);
   const [currentMonth, setCurrentMonth] = React.useState({present:0,absent:0,other:0});
   const [currentYear, setCurrentYear] = React.useState({present:0,absent:0,other:0});
-  const API = 'https://streak-app-uxyv.onrender.com';
+  const API = 'https://streak-app-production.up.railway.app';
   // Graph state (mock data for admin)
   const [attendanceData, setAttendanceData] = useState({});
   const { apiCall } = useAuth();
@@ -99,7 +99,9 @@ const adminStreak = () => {
         setAttendanceData(mapped);
 
         // Prevent re-marking if today exists
-        const todayKey = new Date(Date.now() - (new Date()).getTimezoneOffset()*60000).toISOString().slice(0,10);
+        // const todayKey = new Date(Date.now() - (new Date()).getTimezoneOffset()*60000).toISOString().slice(0,10);
+        const todayKey = formatDate(new Date());
+        console.log("Today Key:", todayKey);
         const t = mapped[todayKey];
         if (t !== undefined) {
           setAttendanceSubmitted(true);
@@ -118,12 +120,13 @@ const adminStreak = () => {
     let message;
     if (status === STATUS.PRESENT) message = "✅ Present";
     else if (status === STATUS.ABSENT) message = "❌ Absent";
-    else if (status === STATUS.OTHER) message = "ℹ️ Other (Genuine Reason)";
+    else if (status === STATUS.OTHER) message = "ℹ️ Not Marked";
     else message = "No data available";
     Alert.alert(`Date: ${key}`, message);
   };
 
   const todayDate = new Date().toLocaleDateString();
+  console.log("Today's Date:", todayDate);
   const formatTime = (date) => {
     const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
@@ -223,7 +226,8 @@ const renderJoinedSummary = () => (
         //   alert("⚠️ Please select the time spent before submitting!");
         //   return;
         // }
-        const todayKey = new Date(Date.now() - (new Date()).getTimezoneOffset()*60000).toISOString().slice(0,10);
+        //  const todayKey = new Date(Date.now() - (new Date()).getTimezoneOffset()*60000).toISOString().slice(0,10);
+        const todayKey = formatDate(new Date());
         const doSubmit = async () => {
           try {
             if (!USE_MOCK) {
@@ -274,7 +278,8 @@ const renderExcuseForm = () => (
         //   alert("⚠️ Please select a reason before submitting!");
         //   return;
         // }
-        const todayKey = new Date(Date.now() - (new Date()).getTimezoneOffset()*60000).toISOString().slice(0,10);
+        // const todayKey = new Date(Date.now() - (new Date()).getTimezoneOffset()*60000).toISOString().slice(0,10);
+        const todayKey = formatDate(new Date());
         const doSubmit = async () => {
           try {
             if (!USE_MOCK) {
@@ -314,14 +319,15 @@ const renderExcuseForm = () => (
   const renderMonthlyReport = () => (
   <>
     <Text style={styles.cardTitle}>Monthly Report</Text>
-    <Text style={styles.summaryText}>Total Classes Joined: 20</Text>
-    <Text style={styles.summaryText}>Total Classes Missed: 5</Text>
-    <Text style={styles.summaryText}>Best Monthly Streak: 14</Text>
+    <Text style={styles.summaryText}>Total Classes Joined: {currentMonth.present}</Text>
+    <Text style={styles.summaryText}>Total Classes Missed: {currentMonth.absent}</Text>
+    <Text style={styles.summaryText}>Best Monthly Streak: P_TBA</Text>
     <View style={styles.streakHeader}>
+      <Text style={styles.streakCounter}>Current Streak: P_Streak days</Text>
       <View style={styles.streakIconWrapper}>
         <Text style={{ fontSize: 24 }}>🔥</Text>
       </View>
-      <Text style={styles.streakCounter}>Current Streak: 7 days</Text>
+      
     </View>
   </>
 );
@@ -329,11 +335,11 @@ const renderExcuseForm = () => (
 const renderYearlyReport = () => (
   <>
     <Text style={styles.cardTitle}>Yearly Report</Text>
-    <Text style={styles.summaryText}>Total Classes Joined: 200</Text>
-    <Text style={styles.summaryText}>Total Classes Missed: 50</Text>
-    <Text style={styles.summaryText}>Best Yearly Streak: 156</Text>
+    <Text style={styles.summaryText}>Total Classes Joined: {currentYear.present}</Text>
+    <Text style={styles.summaryText}>Total Classes Missed: {currentYear.absent}</Text>
+    <Text style={styles.summaryText}>Best Yearly Streak: P_TBA</Text>
     <View style={styles.streakHeader}>
-      <Text style={styles.streakCounter}>Longest Streak: 30 days</Text>
+      <Text style={styles.streakCounter}>Longest Streak: P_Streak days</Text>
       <View style={styles.streakIconWrapper}>
         <Text style={{ fontSize: 24 }}>🔥</Text>
       </View>

@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }) => {
   const [access_token, setAccessToken] = useState(null);
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const API = "https://streak-app-uxyv.onrender.com";
+  const API = 'https://streak-app-production.up.railway.app';
 
 
   // Load stored auth data at startup

@@ -1,4 +1,4 @@
-  const API = "https://streak-app-uxyv.onrender.com";
+  const API = 'https://streak-app-production.up.railway.app/root/health-check';
   const USE_MOCK = true; // Toggle mocked profile update
 import { useAuth } from '@/app/contexts/AuthContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';

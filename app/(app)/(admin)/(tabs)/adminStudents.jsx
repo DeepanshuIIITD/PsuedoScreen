@@ -1,29 +1,23 @@
+import { useAuth } from '@/app/contexts/AuthContext';
+import { useClass } from '@/app/contexts/ClassContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useEffect, useState } from "react";
 import { Alert, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-const API = "https://streak-app-uxyv.onrender.com";
+const API = 'https://streak-app-production.up.railway.app';
 const USE_MOCK = true; // Toggle mocked students APIs
 
+
 const adminStudents = () => {
+  const {selectedClass} = useClass();
+  const { apiCall } = useAuth();
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const palette = colorScheme === 'dark'
     ? { bg:'#0b0f14', card:'#0f172a', text:'#e5e7eb', sub:'#94a3b8', border:'#1f2937' }
     : { bg:'#f9fafb', card:'#ffffff', text:'#111827', sub:'#374151', border:'#e5e7eb' };
-  const [studentNameList, setStudentNameList] = useState([
-    { id: "1", firstName: "Hello", lastName: "Bye" },
-    { id: "2", firstName: "Chaman", lastName: "Tel" },
-    { id: "3", firstName: "Chaman", lastName: "Bond" },
-    { id: "4", firstName: "Daman", lastName: "Diu" },
-    { id: "5", firstName: "Manan", lastName: "Chugg" },
-    { id: "6", firstName: "Sanam", lastName: "Lust" },
-    { id: "7", firstName: "Janam", lastName: "Bond" },
-    { id: "8", firstName: "Kasam", lastName: "Jhones" },
-    { id: "9", firstName: "Dosti", lastName: "Clarkk" },
-    { id: "10", firstName: "Jango", lastName: "Darek" },
-  ]);
+  const [studentNameList, setStudentNameList] = useState([]);
 
   const [topPerformerList] = useState([
     { id: "2", rank: 1 }, // 🥇
@@ -36,8 +30,34 @@ const adminStudents = () => {
   const [filterTopOnly, setFilterTopOnly] = useState(false);
 
   useEffect(() => {
+    // setStudentCount(studentNameList.length);
+    fetchStudents();
     setStudentCount(studentNameList.length);
   }, [studentNameList]);
+
+
+  const fetchStudents = async () => {
+    try {
+        const data = await apiCall(`${API}/admin/studentsList/${selectedClass.id}`, {
+          method: 'GET',
+          headers : {'content-Type': 'application/json'},
+        });
+        // const data = await response.json();
+      // what should be the data structure?
+      //// this is how data lookes like 
+          // {"students":[{"ID":2,"FirstName":"Deepanshu","LastName":"Aluria","Email":"deep@gmail.com","Phone":"9625025503","UserName":"deepanshu","Password":"$2a$10$B0V1tfGsdL4YjtegOa8jl.5oSmm9ys49xUXMElQRffK.zAfxXyd3a","DOB":"2025-09-01T00:00:00Z","RefreshToken":"vZkFl8sOPfeg1K_mz_0EME6BNVS-ssd-9uyMoZObbg0=","RefreshTokenExpiry":"2025-12-19T07:00:34.87Z","CreatedAt":"2025-09-22T05:13:59.604Z","UpdatedAt":"2025-11-19T07:00:34.872Z"}]}
+        if (data && data.students) {
+          setStudentNameList(data.students.map(s => ({
+            id: s.ID.toString(),
+            firstName: s.FirstName,
+            lastName: s.LastName,
+          })));
+        }
+    } catch (e) {
+      console.error("Error fetching students:", e);
+      Alert.alert('Error', e.message || 'Failed to fetch students');
+  }
+};
 
   // Merge top performers into student list with rank info
   const mergedList = studentNameList
@@ -83,19 +103,17 @@ const adminStudents = () => {
           text: "Remove",
           style: "destructive",
           onPress: async () => {
-            // Expected backend API (commented)
-            // DELETE `${API}/admin/class/{classId}/students/{studentId}`
-            // Response 200: { "removed": true }
             try {
-              if (USE_MOCK) {
-                setStudentNameList(prev => prev.filter(s => s.id !== student.id));
-                Alert.alert("Success", `${student.firstName} ${student.lastName} has been removed from the class.`);
-              } else {
-                // await apiCall(`${API}/admin/class/${selectedClass.id}/students/${student.id}`, { method: 'DELETE' });
+                console.log(`Student with name ${student.firstName} wiith id ${student.id} removed from class ${selectedClass.id}`);
+                await apiCall(`${API}/admin/kickStudent/${selectedClass.id}`, { method: 'POST',
+                  body: JSON.stringify({ studentId: student.id }),
+                  headers : {'content-Type': 'application/json'}
+                });
+                
                 setStudentNameList(prev => prev.filter(s => s.id !== student.id));
                 Alert.alert("Success", `${student.firstName} ${student.lastName} has been removed from the class.`);
               }
-            } catch (e) {
+            catch (e) {
               Alert.alert('Error', e.message || 'Failed to remove student');
             }
           }

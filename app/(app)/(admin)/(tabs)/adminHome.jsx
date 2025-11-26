@@ -1,12 +1,25 @@
+// quickSummary API hit response
+//{"summary":{"current_week_absent":0,"current_week_present":0,"total_absent":1,"total_present":1,"total_students":1}}
+// todaySummary response
+// {"summary":{"total_absent":0,"total_present":0,"total_students":1}}
+// streak response
+// {"bestStreak":1,"currentStreak":1}
+// report response
+// {"class_report":{"current_month":{"absent":1,"not_marked":0,"present":1},"current_year":{"absent":1,"not_marked":0,"present":1}}}
+// personalReport response
+// {"personal_report":{"current_month":{"absent":0,"not_marked":0,"present":0},"current_year":{"absent":0,"not_marked":0,"present":0}}}
+// studentsList response 
+// awaiting 
+
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 // import { API } from "@env";
+import { useClass } from '@/app/contexts/ClassContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useClass } from '../../../contexts/ClassContext';
 
 const AdminHome = () => {
   const { user, apiCall, logout } = useAuth();
@@ -30,7 +43,7 @@ const AdminHome = () => {
   const [menuVisible, setMenuVisible] = useState(false);
   const [currentMonth, setCurrentMonth] = useState({ present: 0, absent: 0, other: 0 });
   const [currentYear, setCurrentYear] = useState({ present: 0, absent: 0, other: 0 });
-  const API = 'https://streak-app-uxyv.onrender.com';
+  const API = 'https://streak-app-production.up.railway.app';
   // Fetch class data when component mounts
   useEffect(() => {
     if (selectedClass) {
@@ -57,7 +70,7 @@ const AdminHome = () => {
       console.log("Admin Todays - Summary looks like , ",todaysAttendance);
 
 
-      const performance = await apiCall(`${API}/admin/report`,{
+      const performance = await apiCall(`${API}/admin/report/${selectedClass.id}`,{
         method: 'GET',
         headers: {'content-Type' : 'application/json'},
       });
@@ -167,12 +180,13 @@ const handleLogout = async () => {
       <Text style={styles.cardTitle}>Monthly Report</Text>
       <Text style={styles.summaryText}>Total Classes Joined: {currentMonth.present}</Text>
       <Text style={styles.summaryText}>Total Classes Missed: {currentMonth.absent}</Text>
-      <Text style={styles.summaryText}>Best Monthly Streak: 14</Text>
+      <Text style={styles.summaryText}>Best Monthly Streak: C_TBA</Text>
       <View style={styles.streakHeader}>
+        <Text style={styles.streakCounter}>Current Streak: C_Streak days</Text>
         <View style={styles.streakIconWrapper}>
           <Text style={{ fontSize: 24 }}>🔥</Text>
         </View>
-        <Text style={styles.streakCounter}>Current Streak: 7 days</Text>
+        
       </View>
     </>
   );
@@ -182,9 +196,9 @@ const handleLogout = async () => {
       <Text style={styles.cardTitle}>Yearly Report</Text>
       <Text style={styles.summaryText}>Total Classes Joined: {currentYear.present}</Text>
       <Text style={styles.summaryText}>Total Classes Missed: {currentYear.absent}</Text>
-      <Text style={styles.summaryText}>Best Yearly Streak: 156</Text>
+      <Text style={styles.summaryText}>Best Yearly Streak: C_TBA</Text>
       <View style={styles.streakHeader}>
-        <Text style={styles.streakCounter}>Longest Streak: 30 days</Text>
+        <Text style={styles.streakCounter}>Longest Streak: C_Streak days</Text>
         <View style={styles.streakIconWrapper}>
           <Text style={{ fontSize: 24 }}>🔥</Text>
         </View>

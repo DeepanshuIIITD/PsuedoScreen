@@ -5,6 +5,10 @@
       // /user/calendar/${classid}
       //Calendar looks like this  {"calendar": [{"date": "2025-09-21", "status": "present"}, {"date": "2025-11-07", "status": "present"}], "class_id": 1, "user_id": 1}
 
+// report response
+// {"report":{"current_month":{"absent":1,"not_marked":0,"present":0},"current_year":{"absent":1,"not_marked":0,"present":0}}}
+
+
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -82,7 +86,7 @@ const UserHome = () => {
   const [currentWeekPresent, setCurrentWeekPresent] = useState(0);
   const [currentWeekAbsent, setCurrentWeekAbsent] = useState(0);
   const [currentWeekUnMarked, setCurrentWeekUnMarked] = useState(0);
-  const API = 'https://streak-app-uxyv.onrender.com';
+  const API = 'https://streak-app-production.up.railway.app/root/health-check';
 
   console.log("USER HOME --- selected class is ", selectedClass);
 

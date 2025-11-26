@@ -12,7 +12,7 @@ const AdminClassRegistration = () => {
   const [phone, setPhone] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
   const { apiCall } = useAuth();
-  const API = 'https://streak-app-uxyv.onrender.com';
+  const API = 'https://streak-app-production.up.railway.app';
   console.log("🔴 ADMIN CLASS REGISTRATION - Rendering");
 
 

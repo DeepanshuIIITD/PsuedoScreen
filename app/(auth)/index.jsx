@@ -21,7 +21,7 @@ const app = () => {
   const [userName, setUserName] = React.useState('');
   const [password, setPassword] = React.useState('');
   const insets = useSafeAreaInsets();
-  const API = "https://streak-app-uxyv.onrender.com";
+  const API = 'https://streak-app-production.up.railway.app';
 
   // new claude suggestions
   const [isLoggingIn, setIsLoggingIn] = React.useState(false); // Add this
