@@ -1,6 +1,7 @@
 // import { apiCall } from '@/app/utils/apiHelper';
 import { useClass } from '@/app/contexts/ClassContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import Constants from "expo-constants";
 import { Link, router } from 'expo-router';
 import React, { useEffect } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -17,7 +18,8 @@ const UserClassEnrolled = () => {
     // const authContext = useAuth();
     const { user, access_token } = useAuth(); // Get user and accessToken from auth context\
     const {apiCall} = useAuth();
-    const API_URL = 'https://streak-app-production.up.railway.app';
+    // const API_URL = 'https://streak-app-production.up.railway.app';
+    const API_URL = Constants.expoConfig.extra.API_URL;
 
     const colorScheme = useColorScheme();
 

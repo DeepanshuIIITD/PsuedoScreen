@@ -1,5 +1,5 @@
 import { useAuth } from "@/app/contexts/AuthContext";
-// import { API } from '@env';
+import Constants from "expo-constants";
 import { router } from 'expo-router';
 import React from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -10,7 +10,8 @@ const userClassRegistration = () => {
 
   const [classCode, setClassCode] = React.useState('');
   const {apiCall} = useAuth();
-  const API = 'https://streak-app-production.up.railway.app/root/health-check';
+  // const API = 'https://streak-app-production.up.railway.app';
+  const API = Constants.expoConfig.extra.API_URL;
   const redirectToClass = async (code) => {
       // router.push(`/(user)/userHome/${classId}`);
       if(code.trim() === '') {

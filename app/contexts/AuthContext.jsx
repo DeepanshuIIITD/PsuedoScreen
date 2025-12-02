@@ -1,4 +1,4 @@
-// import { API } from "@env";
+import Constants from "expo-constants";
 import { router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { createContext, useContext, useEffect, useState } from "react";
@@ -19,7 +19,8 @@ export const AuthProvider = ({ children }) => {
   const [access_token, setAccessToken] = useState(null);
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const API = 'https://streak-app-production.up.railway.app';
+  // const API = 'https://streak-app-production.up.railway.app';
+  const API = Constants.expoConfig.extra.API_URL;
 
 
   // Load stored auth data at startup

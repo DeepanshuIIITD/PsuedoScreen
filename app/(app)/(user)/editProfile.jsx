@@ -1,16 +1,20 @@
-  const API = 'https://streak-app-production.up.railway.app/root/health-check';
-  const USE_MOCK = true; // Toggle mocked profile update
+  // const API = 'https://streak-app-production.up.railway.app';
+
+  
 import { useAuth } from '@/app/contexts/AuthContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+
 const EditProfile = () => {
   const { user, apiCall } = useAuth();
+  const USE_MOCK = true; // Toggle mocked profile update
   const insets = useSafeAreaInsets();
-  
+  const API = Constants.expoConfig.extra.API_URL;
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
   const [email, setEmail] = useState(user?.email || '');
@@ -167,7 +171,7 @@ export default EditProfile;
 const styles = StyleSheet.create({
   safeContainer: {
     flex: 1,
-    backgroundColor: "green",
+    backgroundColor: "f9fafb",
   },
   header: {
     flexDirection: "row",

@@ -1,5 +1,6 @@
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import Constants from 'expo-constants';
 // import { API } from '@env';
 import { useClass } from '@/app/contexts/ClassContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -41,7 +42,8 @@ const adminStreak = () => {
   const [showTimePicker, setShowTimePicker] = React.useState(false);
   const [currentMonth, setCurrentMonth] = React.useState({present:0,absent:0,other:0});
   const [currentYear, setCurrentYear] = React.useState({present:0,absent:0,other:0});
-  const API = 'https://streak-app-production.up.railway.app';
+  // const API = 'https://streak-app-production.up.railway.app';
+  const API = Constants.expoConfig.extra.API_URL;
   // Graph state (mock data for admin)
   const [attendanceData, setAttendanceData] = useState({});
   const { apiCall } = useAuth();

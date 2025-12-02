@@ -10,7 +10,7 @@ import React, { useContext } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // importing login element
-// import { API } from "@env";
+import Constants from "expo-constants";
 import { AuthContext } from '../contexts/AuthContext';
 
 console.log("Index file mounting");
@@ -21,30 +21,17 @@ const app = () => {
   const [userName, setUserName] = React.useState('');
   const [password, setPassword] = React.useState('');
   const insets = useSafeAreaInsets();
-  const API = 'https://streak-app-production.up.railway.app';
+  // const API = 'https://streak-app-production.up.railway.app';
+  const API = Constants.expoConfig.extra.API_URL;
 
   // new claude suggestions
   const [isLoggingIn, setIsLoggingIn] = React.useState(false); // Add this
 
   const { login, isLoading } = useContext(AuthContext); // Get isLoading
 
-  
-  const USE_MOCK = false; // Toggle to use hardcoded mock API
-
   //testing function
   const testServerConnection = async () => {
     try {
-      
-      if (USE_MOCK) {
-        // Expected backend API (commented)
-        // Request: GET `${API}/root/health-check`
-        // Response 200:
-        // { "status": "ok", "uptime": number }
-        const data = { status: 'ok', uptime: 12345 };
-        console.log('Server connection successful (mock):', data);
-        alert(`Server connection successful! Status: ${data.status}`);
-        return true;
-      }
       console.log('Testing connection to: ', `${API}/root/health-check`);
       const response = await fetch(`${API}/root/health-check`, {
         method: 'GET',

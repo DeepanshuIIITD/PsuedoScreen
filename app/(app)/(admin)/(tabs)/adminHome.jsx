@@ -12,10 +12,10 @@
 // awaiting 
 
 import { useAuth } from '@/app/contexts/AuthContext';
-import { useColorScheme } from '@/hooks/useColorScheme';
-// import { API } from "@env";
 import { useClass } from '@/app/contexts/ClassContext';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -43,7 +43,8 @@ const AdminHome = () => {
   const [menuVisible, setMenuVisible] = useState(false);
   const [currentMonth, setCurrentMonth] = useState({ present: 0, absent: 0, other: 0 });
   const [currentYear, setCurrentYear] = useState({ present: 0, absent: 0, other: 0 });
-  const API = 'https://streak-app-production.up.railway.app';
+  // const API = 'https://streak-app-production.up.railway.app';
+  const API = Constants.expoConfig.extra.API_URL;
   // Fetch class data when component mounts
   useEffect(() => {
     if (selectedClass) {

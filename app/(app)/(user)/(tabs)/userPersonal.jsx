@@ -4,13 +4,8 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useClass } from '@/app/contexts/ClassContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import Constants from 'expo-constants';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-// const API = "https://streak-app-uxyv.onrender.com";
-// import { API } from '@env';
-const USE_MOCK = false; // Toggle mocked attendance APIs
-
-
-// post /user/markAttendance/${classid}. payload (status= 'present')
 
 
 const userPersonal = () => {
@@ -21,7 +16,8 @@ const userPersonal = () => {
   const [isReportView, setIsReportView] = React.useState(null); 
   const [selectedTime, setSelectedTime] = React.useState(new Date());
   const [showTimePicker, setShowTimePicker] = React.useState(false);
-  const API = 'https://streak-app-production.up.railway.app/root/health-check';
+  // const API = 'https://streak-app-production.up.railway.app';
+  const API = Constants.expoConfig.extra.API_URL;
 
   const { user, apiCall } = useAuth();
   const { selectedClass ,setAttendanceData } = useClass();
@@ -38,7 +34,6 @@ const userPersonal = () => {
     const checkToday = async () => {
       if (!selectedClass) return;
       try {
-        if (USE_MOCK) return;
         const cal = await apiCall(`${API}/user/calendar/${selectedClass.id}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
@@ -141,28 +136,16 @@ const renderJoinedSummary = () => (
         // }
         // Submit attendance (Present)
         try {
-          if (USE_MOCK) {
-            // Expected backend API (commented)
-            // POST `${API}/user/checkin`
-            // Body:
-            // { "classId": string, "status": "present" | "absent", "note": string, "timeSpentMinutes": number, "excuse"?: string }
-            // Response 200:
-            // { "success": true, "streak": number }
-            const todayKey = new Date().toISOString().split('T')[0];
-            setAttendanceData(prev => ({ ...prev, [todayKey]: 1 }));
-            setAttendanceSubmitted(true);
-          } else {
-            // const minutes = Math.max(0, Math.round((selectedTime.getHours()*60) + selectedTime.getMinutes()));
-            await apiCall(`${API}/user/markAttendance/${selectedClass.id}`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              // body: JSON.stringify({ classId: 'selected_class_id', status: 'present', note: todayNote, timeSpentMinutes: minutes })
-              body: JSON.stringify({status: 'present'})
-            });
-            const todayKey = new Date().toISOString().split('T')[0];
-            setAttendanceData(prev => ({ ...prev, [todayKey]: 1 }));
-            setAttendanceSubmitted(true);
-          }
+          // const minutes = Math.max(0, Math.round((selectedTime.getHours()*60) + selectedTime.getMinutes()));
+          await apiCall(`${API}/user/markAttendance/${selectedClass.id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            // body: JSON.stringify({ classId: 'selected_class_id', status: 'present', note: todayNote, timeSpentMinutes: minutes })
+            body: JSON.stringify({status: 'present'})
+          });
+          const todayKey = new Date().toISOString().split('T')[0];
+          setAttendanceData(prev => ({ ...prev, [todayKey]: 1 }));
+          setAttendanceSubmitted(true);
         } catch (e) {
           alert(`Failed to submit: ${e.message}`);
         }
@@ -200,24 +183,14 @@ const renderExcuseForm = () => (
         //   return;
         // }
         try {
-          if (USE_MOCK) {
-            // Expected backend API (commented)
-            // POST `${API}/user/checkin`
-            // Body: { "classId": string, "status": "absent", "excuse": string }
-            // Response 200: { "success": true }
-            const todayKey = new Date().toISOString().split('T')[0];
-            setAttendanceData(prev => ({ ...prev, [todayKey]: 0 }));
-            setAttendanceSubmitted(true);
-          } else {
-            await apiCall(`${API}/user/markAttendance/${selectedClass.id}`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({status: 'absent'})
-            });
-            const todayKey = new Date().toISOString().split('T')[0];
-            setAttendanceData(prev => ({ ...prev, [todayKey]: 0 }));
-            setAttendanceSubmitted(true);
-          }
+          await apiCall(`${API}/user/markAttendance/${selectedClass.id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({status: 'absent'})
+          });
+          const todayKey = new Date().toISOString().split('T')[0];
+          setAttendanceData(prev => ({ ...prev, [todayKey]: 0 }));
+          setAttendanceSubmitted(true);
         } catch (e) {
           alert(`Failed to submit: ${e.message}`);
         }
@@ -364,7 +337,7 @@ export default userPersonal;
 const styles = StyleSheet.create({
   safeContainer:{
     flex: 1,
-    backgroundColor: "green",
+    backgroundColor: "f9fafb",
   },
   screen: {
     flex: 1,

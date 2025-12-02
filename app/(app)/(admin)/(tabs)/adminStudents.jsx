@@ -2,10 +2,12 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { useClass } from '@/app/contexts/ClassContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import React, { useEffect, useState } from "react";
 import { Alert, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-const API = 'https://streak-app-production.up.railway.app';
+// const API = 'https://streak-app-production.up.railway.app';
+const API = Constants.expoConfig.extra.API_URL;
 const USE_MOCK = true; // Toggle mocked students APIs
 
 

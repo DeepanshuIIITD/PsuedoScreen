@@ -1,5 +1,5 @@
 import { useAuth } from '@/app/contexts/AuthContext';
-// import { API } from '@env';
+import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import React from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -12,7 +12,8 @@ const AdminClassRegistration = () => {
   const [phone, setPhone] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
   const { apiCall } = useAuth();
-  const API = 'https://streak-app-production.up.railway.app';
+  // const API = 'https://streak-app-production.up.railway.app';
+  const API = Constants.expoConfig.extra.API_URL;
   console.log("🔴 ADMIN CLASS REGISTRATION - Rendering");
 
 

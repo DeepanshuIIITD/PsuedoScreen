@@ -19,7 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // for importing class respective details
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useClass } from '@/app/contexts/ClassContext';
-// import { API } from '@env';
+import Constants from 'expo-constants';
 
 const USE_MOCK = false; // Toggle mocked streak APIs
 
@@ -86,7 +86,8 @@ const UserHome = () => {
   const [currentWeekPresent, setCurrentWeekPresent] = useState(0);
   const [currentWeekAbsent, setCurrentWeekAbsent] = useState(0);
   const [currentWeekUnMarked, setCurrentWeekUnMarked] = useState(0);
-  const API = 'https://streak-app-production.up.railway.app/root/health-check';
+  // const API = 'https://streak-app-production.up.railway.app';
+  const API = Constants.expoConfig.extra.API_URL;
 
   console.log("USER HOME --- selected class is ", selectedClass);
 
