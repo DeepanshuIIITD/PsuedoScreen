@@ -16,6 +16,8 @@ const userPersonal = () => {
   const [isReportView, setIsReportView] = React.useState(null); 
   const [selectedTime, setSelectedTime] = React.useState(new Date());
   const [showTimePicker, setShowTimePicker] = React.useState(false);
+  const [currentMonth, setCurrentMonth] = React.useState({present:0,absent:0,other:0});
+  const [currentYear, setCurrentYear] = React.useState({present:0,absent:0,other:0});
   // const API = 'https://streak-app-production.up.railway.app';
   const API = Constants.expoConfig.extra.API_URL;
 
@@ -79,6 +81,27 @@ const userPersonal = () => {
     marginTop: 10,
   },
 };
+
+
+  const reportData = async () => {
+    // {"report":{"current_month":{"absent":1,"not_marked":0,"present":0},"current_year":{"absent":1,"not_marked":0,"present":0}}}
+    const personalReport = await apiCall(`${API}/user/report/${selectedClass.id}`,{
+      method: `GET`,
+      headers: {"Content-Type": "application/json"},
+    });
+    let cm,cy ;
+    cm = personalReport.report.current_month; cy = personalReport.report.current_year;
+    setCurrentMonth({
+      present: cm.present,
+      absent: cm.absent,
+      other: cm.not_marked,
+    });
+    setCurrentYear({
+      present: cy.present,
+      absent: cy.absent,
+      other: cy.not_marked,
+    });
+  }
 
   // 👉 Joined summary with validation
 const renderJoinedSummary = () => (
@@ -217,14 +240,15 @@ const renderExcuseForm = () => (
   const renderMonthlyReport = () => (
   <>
     <Text style={styles.cardTitle}>Monthly Report</Text>
-    <Text style={styles.summaryText}>Total Classes Joined: 20</Text>
-    <Text style={styles.summaryText}>Total Classes Missed: 5</Text>
-    <Text style={styles.summaryText}>Best Monthly Streak: 14</Text>
+    <Text style={styles.summaryText}>Total Classes Joined: {currentMonth.present}</Text>
+    <Text style={styles.summaryText}>Total Classes Missed: {currentMonth.absent}</Text>
+    <Text style={styles.summaryText}>Best Monthly Streak: CM_BS</Text>
     <View style={styles.streakHeader}>
+      <Text style={styles.streakCounter}>Current Streak: CS days</Text>
       <View style={styles.streakIconWrapper}>
         <Text style={{ fontSize: 24 }}>🔥</Text>
       </View>
-      <Text style={styles.streakCounter}>Current Streak: 7 days</Text>
+      
     </View>
   </>
 );
@@ -232,11 +256,11 @@ const renderExcuseForm = () => (
 const renderYearlyReport = () => (
   <>
     <Text style={styles.cardTitle}>Yearly Report</Text>
-    <Text style={styles.summaryText}>Total Classes Joined: 200</Text>
-    <Text style={styles.summaryText}>Total Classes Missed: 50</Text>
-    <Text style={styles.summaryText}>Best Yearly Streak: 156</Text>
+    <Text style={styles.summaryText}>Total Classes Joined: {currentYear.present}</Text>
+    <Text style={styles.summaryText}>Total Classes Missed: {currentYear.absent}</Text>
+    <Text style={styles.summaryText}>Best Yearly Streak: CY_BS</Text>
     <View style={styles.streakHeader}>
-      <Text style={styles.streakCounter}>Longest Streak: 30 days</Text>
+      <Text style={styles.streakCounter}>Longest Streak: CS days</Text>
       <View style={styles.streakIconWrapper}>
         <Text style={{ fontSize: 24 }}>🔥</Text>
       </View>

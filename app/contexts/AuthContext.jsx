@@ -18,6 +18,7 @@ export const AuthProvider = ({ children }) => {
   console.log("🟢 AUTH PROVIDER - Mounting");
   const [access_token, setAccessToken] = useState(null);
   const [user, setUser] = useState(null);
+  const [refresh_token, setRefreshToken] = useState(null); // newly added
   const [isLoading, setIsLoading] = useState(true);
   // const API = 'https://streak-app-production.up.railway.app';
   const API = Constants.expoConfig.extra.API_URL;
@@ -33,11 +34,13 @@ export const AuthProvider = ({ children }) => {
     try {
       const [storedToken, storedUserData] = await Promise.all([
         SecureStore.getItemAsync("access_token"),
+        SecureStore.getItemAsync("refresh_token"), // <-- newly added
         SecureStore.getItemAsync("user"),
       ]);
 
       if (storedToken && storedUserData) {
         setAccessToken(storedToken);
+        setRefreshToken(storedRefreshToken || null); // <-- newly added
         setUser(JSON.parse(storedUserData));
       }
     } catch (error) {
@@ -63,7 +66,11 @@ export const AuthProvider = ({ children }) => {
 
       const userWithRole = { ...data.user, role };
       await SecureStore.setItemAsync("access_token", data.access_token);
+      if (data.refresh_token) {       // newly added
+        await SecureStore.setItemAsync("refresh_token", data.refresh_token); // <-- ADD THIS
+      }
       setAccessToken(data.access_token);
+      setRefreshToken(data.refresh_token || null); // <-- newly added
       await SecureStore.setItemAsync("user", JSON.stringify(userWithRole));
       setUser(userWithRole);
       return { success: true };
@@ -83,9 +90,11 @@ export const AuthProvider = ({ children }) => {
     } finally {
       await Promise.all([
         SecureStore.deleteItemAsync("access_token").catch(() => {}),
+        SecureStore.deleteItemAsync("refresh_token").catch(() => {}), // <-- newly added
         SecureStore.deleteItemAsync("user").catch(() => {}),
       ]);
       setAccessToken(null);
+      setRefreshToken(null); // <-- newly added
       setUser(null);
       router.replace("/(auth)");
     }
@@ -105,7 +114,11 @@ export const AuthProvider = ({ children }) => {
         throw new Error(data.error || "Refresh failed");
       }
       await SecureStore.setItemAsync("access_token", data.access_token);
+      if (data.refresh_token) {
+        await SecureStore.setItemAsync("refresh_token", data.refresh_token); // <-- ADD THIS
+      }
       setAccessToken(data.access_token);
+      setRefreshToken(data.refresh_token || refresh_token); // <-- newly added
       return data.access_token;
     } catch (err) {
       console.error("Token refresh failed:", err);
@@ -169,6 +182,7 @@ export const AuthProvider = ({ children }) => {
   const value = {
     user,
     access_token,
+    refresh_token,
     isLoading,
     login,
     logout,

@@ -18,8 +18,8 @@ const app = () => {
   console.log("Index file rendering");
   // state defining for user and admin login
   const [role, setRole] = React.useState('user'); // 'user', 'admin', or 'guest'
-  const [userName, setUserName] = React.useState('');
-  const [password, setPassword] = React.useState('');
+  const [userName, setUserName] = React.useState('deepanshu');
+  const [password, setPassword] = React.useState('123456');
   const insets = useSafeAreaInsets();
   // const API = 'https://streak-app-production.up.railway.app';
   const API = Constants.expoConfig.extra.API_URL;
