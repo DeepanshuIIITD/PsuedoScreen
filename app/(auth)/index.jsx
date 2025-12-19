@@ -7,7 +7,7 @@
 import { Link } from 'expo-router';
 
 import React, { useContext } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // importing login element
 import Constants from "expo-constants";
@@ -18,8 +18,8 @@ const app = () => {
   console.log("Index file rendering");
   // state defining for user and admin login
   const [role, setRole] = React.useState('user'); // 'user', 'admin', or 'guest'
-  const [userName, setUserName] = React.useState('deepanshu');
-  const [password, setPassword] = React.useState('123456');
+  const [userName, setUserName] = React.useState('');
+  const [password, setPassword] = React.useState('');
   const insets = useSafeAreaInsets();
   // const API = 'https://streak-app-production.up.railway.app';
   const API = Constants.expoConfig.extra.API_URL;
@@ -30,32 +30,32 @@ const app = () => {
   const { login, isLoading } = useContext(AuthContext); // Get isLoading
 
   //testing function
-  const testServerConnection = async () => {
-    try {
-      console.log('Testing connection to: ', `${API}/root/health-check`);
-      const response = await fetch(`${API}/root/health-check`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        timeout: 10000,
-      });
-      // console.log("Response looks like this , ", response);
-      if (!response.ok) {
-        throw new Error(`Server responded with status: ${response.status}`);
-      }
-      const data = await response.json();
-      console.log('Server connection successful:', data);
-      alert(`Server connection successful! Status: ${data.status}`);
-      return true;
-    } catch (error) {
-      console.error('Connection test failed:', error);
-      // Show detailed error information
-      alert(`Cannot connect to server. Error: ${error.message}\n\nMake sure:\n1. Server is running on ${API}\n2. Your phone and computer are on the same WiFi\n3. Firewall allows connections on correct port`);
+  // const testServerConnection = async () => {
+  //   try {
+  //     console.log('Testing connection to: ', `${API}/root/health-check`);
+  //     const response = await fetch(`${API}/root/health-check`, {
+  //       method: 'GET',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       timeout: 10000,
+  //     });
+  //     // console.log("Response looks like this , ", response);
+  //     if (!response.ok) {
+  //       throw new Error(`Server responded with status: ${response.status}`);
+  //     }
+  //     const data = await response.json();
+  //     console.log('Server connection successful:', data);
+  //     alert(`Server connection successful! Status: ${data.status}`);
+  //     return true;
+  //   } catch (error) {
+  //     console.error('Connection test failed:', error);
+  //     // Show detailed error information
+  //     alert(`Cannot connect to server. Error: ${error.message}\n\nMake sure:\n1. Server is running on ${API}\n2. Your phone and computer are on the same WiFi\n3. Firewall allows connections on correct port`);
       
-      return false;
-    }
-  };
+  //     return false;
+  //   }
+  // };
 
   const handleLogin = async () => {
 
@@ -118,15 +118,19 @@ const app = () => {
       <Link href = "/(auth)/signup">
         <Text style = {styles.link}> New Registration ? Sign up</Text>
       </Link>
-      <Text>Hello, {role}!</Text>
+
+      <Link href = "/(auth)/forgotPassword">
+        <Text style = {styles.link}> Forgot Password ? Reset here</Text>
+      </Link>
+      {/* <Text>Hello, {role}!</Text> */}
 
       {/* Test Server Connection Button */}
-      <Pressable
+      {/* <Pressable
         style={styles.testButton}
         onPress={testServerConnection}
       >
         <Text style={styles.testButtonText}>Test Server Connection</Text>
-      </Pressable>
+      </Pressable> */}
     </View>
     </View>
   )

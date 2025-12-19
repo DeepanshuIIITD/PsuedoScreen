@@ -77,7 +77,7 @@ export default function AdminLayout() {
 
     return (
     <ClassProvider>
-        <Stack>
+        {/* <Stack>
         <Stack.Screen 
             name="adminClassSelector" 
             options={{ title: "My Classes" }} 
@@ -90,6 +90,12 @@ export default function AdminLayout() {
             name="(tabs)" 
             options={{ headerShown: false }} 
         />
+        </Stack> */}
+        {/* {copied from user layout} */}
+        <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="adminClassSelector" />
+            <Stack.Screen name="adminClassRegistration" />
+            <Stack.Screen name="(tabs)" /> 
         </Stack>
     </ClassProvider>
     );

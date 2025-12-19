@@ -130,7 +130,7 @@ export const AuthProvider = ({ children }) => {
   // ✅ Unified API call wrapper (replaces apiHelper)
   const apiCall = async (url, options = {}) => {
     console.log("🔍 API Call to:", url);
-    console.log("Access token is ", access_token);
+    // console.log("Access token is ", access_token);
 
     try {
       // First attempt

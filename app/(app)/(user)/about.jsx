@@ -76,7 +76,8 @@ export default About;
 const styles = StyleSheet.create({
   safeContainer: {
     flex: 1,
-    backgroundColor: "green",
+    // backgroundColor: "green", changed below this
+    backgroundColor: "#f9fafb",
   },
   screen: {
     flex: 1,

@@ -1,440 +1,1135 @@
+// import { useAuth } from '@/app/contexts/AuthContext';
+// import { useColorScheme } from '@/hooks/useColorScheme';
+// import Constants from 'expo-constants';
+// // import { API } from '@env';
+// import { useClass } from '@/app/contexts/ClassContext';
+// import { MaterialCommunityIcons } from '@expo/vector-icons';
+// import React, { useEffect, useMemo, useState } from 'react';
+// import { Alert, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+// import * as Animatable from 'react-native-animatable';
+// import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+// const STATUS = {
+//   ABSENT: 0,
+//   PRESENT: 1,
+//   OTHER: 2,
+// };
+
+// const getStatusColor = (status) => {
+//   switch (status) {
+//     case STATUS.PRESENT: return "#22c55e";
+//     case STATUS.ABSENT: return "#ef4444";
+//     case STATUS.OTHER: return "#3b82f6";
+//     default: return "#d1d5db";
+//   }
+// };
+
+// const weekdays = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+// const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+// const adminStreak = () => {
+//   const insets = useSafeAreaInsets();
+//   const colorScheme = useColorScheme();
+//   const palette = colorScheme === 'dark'
+//     ? { bg:'#0b0f14', card:'#0f172a', text:'#e5e7eb', sub:'#94a3b8', border:'#1f2937' }
+//     : { bg:'#f9fafb', card:'#ffffff', text:'#111827', sub:'#374151', border:'#e5e7eb' };
+//   const [isjoined, setJoined] = React.useState(null); 
+//   const [attendanceSubmitted, setAttendanceSubmitted] = React.useState(false); // new
+//   const [todayNote, setTodayNote] = React.useState("");
+//   const [excuse, setExcuse] = React.useState("");
+//   const [isReportView, setIsReportView] = React.useState(null); 
+//   const [selectedTime, setSelectedTime] = React.useState(new Date());
+//   const [showTimePicker, setShowTimePicker] = React.useState(false);
+//   const [currentMonth, setCurrentMonth] = React.useState({present:0,absent:0,other:0});
+//   const [currentYear, setCurrentYear] = React.useState({present:0,absent:0,other:0});
+//   // const API = 'https://streak-app-production.up.railway.app';
+//   const API = Constants.expoConfig.extra.API_URL;
+//   // Graph state (mock data for admin)
+//   const [attendanceData, setAttendanceData] = useState({});
+//   const { apiCall } = useAuth();
+//   const { selectedClass } = useClass();
+//   const USE_MOCK = false;
+
+//   const year = 2025;
+//   const days = useMemo(() => {
+//     const list = [];
+//     for (let i = 0; i < 365; i++) list.push(new Date(year, 0, 1 + i));
+//     return list;
+//   }, []);
+
+//   const weeks = useMemo(() => {
+//     const out = [];
+//     let w = [];
+//     days.forEach((d) => {
+//       w.push(d);
+//       if (w.length === 7) { out.push(w); w = []; }
+//     });
+//     return out;
+//   }, [days]);
+
+//   const monthMarkers = useMemo(() => {
+//     const markers = [];
+//     weeks.forEach((week, idx) => {
+//       const firstDay = week[0];
+//       if (firstDay.getDate() <= 7) markers.push({ month: months[firstDay.getMonth()], weekIndex: idx });
+//     });
+//     return markers;
+//   }, [weeks]);
+
+//   const formatDate = (date) => {
+//     const y = date.getFullYear();
+//     const m = String(date.getMonth() + 1).padStart(2, '0');
+//     const d = String(date.getDate()).padStart(2, '0');
+//     return `${y}-${m}-${d}`;
+//   };
+
+//   // Load calendar and prevent re-marking if already marked today
+//   useEffect(() => {
+//     const loadCalendar = async () => {
+//       if (!selectedClass) return;
+//       try {
+//         if (USE_MOCK) return;
+//         const res = await apiCall(`${API}/admin/calendar/${selectedClass.id}`, {
+//           method: 'GET',
+//           headers: { 'Content-Type': 'application/json' },
+//         });
+//         const mapped = {};
+//         (res?.calendar || []).forEach(({ date, status }) => {
+//           const s = status === 'present' ? STATUS.PRESENT : status === 'absent' ? STATUS.ABSENT : STATUS.OTHER;
+//           mapped[date] = s;
+//         });
+//         setAttendanceData(mapped);
+
+//         // Prevent re-marking if today exists
+//         // const todayKey = new Date(Date.now() - (new Date()).getTimezoneOffset()*60000).toISOString().slice(0,10);
+//         const todayKey = formatDate(new Date());
+//         console.log("Today Key:", todayKey);
+//         const t = mapped[todayKey];
+//         if (t !== undefined) {
+//           setAttendanceSubmitted(true);
+//           setJoined(t === STATUS.PRESENT);
+//         }
+//       } catch (e) {
+//         // ignore
+//       }
+//     };
+//     loadCalendar();
+//   }, [selectedClass]);
+
+//   const handleDayPress = (date) => {
+//     const key = formatDate(date);
+//     const status = attendanceData[key] ?? null;
+//     let message;
+//     if (status === STATUS.PRESENT) message = "✅ Present";
+//     else if (status === STATUS.ABSENT) message = "❌ Absent";
+//     else if (status === STATUS.OTHER) message = "ℹ️ Not Marked";
+//     else message = "No data available";
+//     Alert.alert(`Date: ${key}`, message);
+//   };
+
+//   const todayDate = new Date().toLocaleDateString();
+//   console.log("Today's Date:", todayDate);
+//   const formatTime = (date) => {
+//     const hours = date.getHours().toString().padStart(2, '0');
+//     const minutes = date.getMinutes().toString().padStart(2, '0');
+//     return `${hours}:${minutes}`;
+//   };
+
+
+//   const pickerStyle = {
+//   inputIOS: {
+//     borderColor: "#d1d5db",
+//     borderWidth: 1,
+//     borderRadius: 8,
+//     padding: 8,
+//     marginTop: 10,
+//   },
+//   inputAndroid: {
+//     borderColor: "#d1d5db",
+//     borderWidth: 1,
+//     borderRadius: 8,
+//     padding: 8,
+//     marginTop: 10,
+//   },
+// };
+
+//   const reportData = async () => {
+    
+//     const personalReport = await apiCall(`${API}/admin/personalReport/${selectedClass.id}`,{
+//       method: `GET`,
+//       headers: {"Content-Type": "application/json"},
+//     });
+//     let cm,cy ;
+//     cm = personalReport.personal_report.current_month; cy = personalReport.personalReport.current_year;
+//     setCurrentMonth({
+//       present: cm.present,
+//       absent: cm.absent,
+//       other: cm.not_marked,
+//     });
+//     setCurrentYear({
+//       present: cy.present,
+//       absent: cy.absent,
+//       other: cy.not_marked,
+//     });
+//   }
+
+
+//   // 👉 Joined summary with validation
+// const renderJoinedSummary = () => (
+//   <>
+//     <Text style={styles.cardTitle}>Attendance Summary</Text>
+//     <Text style={styles.summaryText}>You have joined today's class. Great job!</Text>
+
+//     {/* Note input */}
+//     {/* <TextInput
+//       style={styles.inputBox}
+//       placeholder="Any notes for today?"
+//       value={todayNote}
+//       onChangeText={setTodayNote}
+//       multiline
+//     /> */}
+
+//     {/* Time spent selector */}
+//     {/* <TouchableOpacity
+//       style={styles.inputBox}
+//       onPress={() => setShowTimePicker(true)}
+//     >
+//       <Text>
+//         {selectedTime
+//           ? `Time spent: ${formatTime(selectedTime)}`
+//           : "Select time spent"}
+//       </Text>
+//     </TouchableOpacity> */}
+
+//     {/* {showTimePicker && (
+//       <DateTimePicker
+      
+//         value={selectedTime}
+//         mode="time"
+//         is24Hour={true}
+//         display="default"
+//         onChange={(event, date) => {
+//           setShowTimePicker(false);
+//           if (date) setSelectedTime(date);
+//         }}
+//       />
+//     )} */}
+
+//     {/* Submit with validation */}
+//     <TouchableOpacity
+//       style={styles.submitButton}
+//       disabled={attendanceSubmitted}
+//       onPress={() => {
+//         // if (!todayNote.trim()) {
+//         //   alert("⚠️ Please enter a note before submitting!");
+//         //   return;
+//         // }
+//         // if (!selectedTime) {
+//         //   alert("⚠️ Please select the time spent before submitting!");
+//         //   return;
+//         // }
+//         //  const todayKey = new Date(Date.now() - (new Date()).getTimezoneOffset()*60000).toISOString().slice(0,10);
+//         const todayKey = formatDate(new Date());
+//         const doSubmit = async () => {
+//           try {
+//             if (!USE_MOCK) {
+//               await apiCall(`${API}/admin/markAttendance/${selectedClass.id}`, {
+//                 method: 'POST',
+//                 headers: { 'Content-Type': 'application/json' },
+//                 body: JSON.stringify({ status: 'present' }),
+//               });
+//             }
+//             setAttendanceData(prev => ({ ...prev, [todayKey]: STATUS.PRESENT }));
+//             setAttendanceSubmitted(true);
+//           } catch (e) {
+//             Alert.alert('Error', e.message || 'Failed to mark attendance');
+//           }
+//         };
+//         doSubmit();
+//       }}
+//     >
+//       <Text style={styles.submitText}>Submit</Text>
+//     </TouchableOpacity>
+//   </>
+// );
+
+// //     const excuseOptions = [
+// //   { label: 'Out of station', value: 'Out of station' },
+// //   { label: 'Health issue', value: 'Health issue' },
+// //   { label: 'Very genuine', value: 'Very genuine' },
+// //   { label: 'Excuses', value: 'Excuses' },
+// // ];
+
+// // 👉 Excuse form with validation
+// const renderExcuseForm = () => (
+//   <>
+//     {/* <Text style={styles.cardTitle}>Reason for not joining ?</Text>
+//     <RNPickerSelect
+//       onValueChange={setExcuse}
+//       value={excuse}
+//       placeholder={{ label: "Select a reason...", value: null }}
+//       items={excuseOptions}
+//       style={pickerStyle}
+//       useNativeAndroidPickerStyle={false}
+//     /> */}
+//     <Text style={styles.summaryText}>You didn't joined today's class ? No Worries It happens sometimes</Text>
+//     <TouchableOpacity
+//       style={styles.submitButton}
+//       onPress={() => {
+//         // if (!excuse) {
+//         //   alert("⚠️ Please select a reason before submitting!");
+//         //   return;
+//         // }
+//         // const todayKey = new Date(Date.now() - (new Date()).getTimezoneOffset()*60000).toISOString().slice(0,10);
+//         const todayKey = formatDate(new Date());
+//         const doSubmit = async () => {
+//           try {
+//             if (!USE_MOCK) {
+//               await apiCall(`${API}/admin/markAttendance/${selectedClass.id}`, {
+//                 method: 'POST',
+//                 headers: { 'Content-Type': 'application/json' },
+//                 body: JSON.stringify({ status: 'absent' }),
+//               });
+//             }
+//             setAttendanceData(prev => ({ ...prev, [todayKey]: STATUS.ABSENT }));
+//             setAttendanceSubmitted(true);
+//           } catch (e) {
+//             Alert.alert('Error', e.message || 'Failed to mark attendance');
+//           }
+//         };
+//         doSubmit();
+//       }}
+//     >
+//       <Text style={styles.submitText}>Submit</Text>
+//     </TouchableOpacity>
+//   </>
+// );
+
+
+//   // 👉 After attendance submitted, show confirmation card
+//   const renderAttendanceConfirmation = () => (
+//     <View style={styles.card}>
+//       <Text style={styles.cardTitle}>Attendance Marked</Text>
+//       <Text style={styles.summaryText}>
+//         You have marked your attendance for {todayDate} as{" "}
+//         {isjoined ? "✅ Present" : "❌ Absent"}
+//       </Text>
+//     </View>
+//   );
+
+//   // 👉 Monthly Report
+//   const renderMonthlyReport = () => (
+//   <>
+//     <Text style={styles.cardTitle}>Monthly Report</Text>
+//     <Text style={styles.summaryText}>Total Classes Joined: {currentMonth.present}</Text>
+//     <Text style={styles.summaryText}>Total Classes Missed: {currentMonth.absent}</Text>
+//     <Text style={styles.summaryText}>Best Monthly Streak: P_TBA</Text>
+//     <View style={styles.streakHeader}>
+//       <Text style={styles.streakCounter}>Current Streak: P_Streak days</Text>
+//       <View style={styles.streakIconWrapper}>
+//         <Text style={{ fontSize: 24 }}>🔥</Text>
+//       </View>
+      
+//     </View>
+//   </>
+// );
+
+// const renderYearlyReport = () => (
+//   <>
+//     <Text style={styles.cardTitle}>Yearly Report</Text>
+//     <Text style={styles.summaryText}>Total Classes Joined: {currentYear.present}</Text>
+//     <Text style={styles.summaryText}>Total Classes Missed: {currentYear.absent}</Text>
+//     <Text style={styles.summaryText}>Best Yearly Streak: P_TBA</Text>
+//     <View style={styles.streakHeader}>
+//       <Text style={styles.streakCounter}>Longest Streak: P_Streak days</Text>
+//       <View style={styles.streakIconWrapper}>
+//         <Text style={{ fontSize: 24 }}>🔥</Text>
+//       </View>
+//     </View>
+//   </>
+// );
+
+
+//   return (
+//     <ScrollView style={[styles.screen,{backgroundColor: palette.bg}]} contentContainerStyle={{ paddingBottom: insets.bottom + 24, paddingTop: insets.top }}>
+//       <Text style={[styles.title,{color: palette.text}]}> Today's Attendance </Text>
+
+//       {/* Class Entry */}
+//       {!attendanceSubmitted && (
+//       <View style={styles.card}>
+//         <Text style={styles.cardTitle}>Class Entry</Text>
+//         <View style={styles.innerBox}>
+//           <Text style={styles.cardText}>Joined Today's Class ?</Text>
+//           <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
+            
+//             {/* Yes Button */}
+//             <TouchableOpacity
+//               style={[
+//                 styles.yesButton,
+//                 isjoined === true && { backgroundColor: "#4ade80" } // highlight active
+//               ]}
+//               onPress={() => setJoined(isjoined === true ? null : true)} // toggle
+//             >
+//               <Text style={{ color: "white", fontWeight: "600" }}>Yes, I did!</Text>
+//             </TouchableOpacity>
+
+//             {/* No Button */}
+//             <TouchableOpacity
+//               style={[
+//                 styles.noButton,
+//                 isjoined === false && { backgroundColor: "#f43f5e" } // highlight active
+//               ]}
+//               onPress={() => setJoined(isjoined === false ? null : false)} // toggle
+//             >
+//               <Text style={{ color: "white", fontWeight: "600" }}>No, Missed it</Text>
+//             </TouchableOpacity>
+
+//               </View>
+//             </View>
+//           </View>
+//         )}
+
+//       {/* Show form or confirmation */}
+//       {!attendanceSubmitted && isjoined !== null && (
+//         <View style={styles.card}>
+//           {isjoined ? renderJoinedSummary() : renderExcuseForm()}
+//         </View>
+//       )}
+//       {attendanceSubmitted && renderAttendanceConfirmation()}
+
+//       {/* Report Section */}
+//       <View style={[styles.card,{backgroundColor: palette.card, borderWidth:1, borderColor: palette.border}] }>
+//           <Text style={[styles.cardTitle,{color: palette.text}]}>Report</Text>
+//           <View style={[styles.innerBox,{backgroundColor: colorScheme==='dark' ? '#111827' : '#f3f4f6'}]}>
+//             <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
+//               <TouchableOpacity
+//                 style={[
+//                   styles.reportButton,
+//                   isReportView === true && { backgroundColor: "#7c3aed" }
+//                 ]}
+//                 onPress={() => setIsReportView(isReportView === true ? null : true)} // toggle
+//               >
+//                 <Text style={styles.cardText}>Monthly Report</Text>
+//               </TouchableOpacity>
+
+//               <TouchableOpacity
+//                 style={[
+//                   styles.reportButton,
+//                   isReportView === false && { backgroundColor: "#7c3aed" }
+//                 ]}
+//                 onPress={() => setIsReportView(isReportView === false ? null : false)} // toggle
+//               >
+//                 <Text style={styles.cardText}>Yearly Report</Text>
+//               </TouchableOpacity>
+//             </View>
+//           </View>
+//         </View>
+
+//         {isReportView !== null && (
+//           <View style={[styles.card,{backgroundColor: palette.card, borderWidth:1, borderColor: palette.border}] }>
+//             {isReportView ? renderMonthlyReport() : renderYearlyReport()}
+//           </View>
+//         )}
+
+//         {/* Streak Graph (same as user) */}
+//         <View style={[styles.card,{backgroundColor: palette.card, borderWidth:1, borderColor: palette.border}] }>
+//           <View style={styles.streakHeader}>
+//             <Text style={[styles.cardTitle,{color: palette.text}]}>Streak</Text>
+//             <Animatable.View 
+//               animation="pulse" 
+//               easing="ease-out" 
+//               iterationCount="infinite" 
+//               style={styles.streakIconWrapper}
+//             >
+//               <MaterialCommunityIcons name="fire" size={32} color="#ff6b6b" />
+//             </Animatable.View>
+//           </View>
+//           <Text style={[styles.streakCounter,{color: colorScheme==='dark' ? '#fca5a5' : '#ef4444'}]}>🔥 20 Days</Text>
+
+//           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+//             <View style={{ flexDirection: "column" }}>
+//               {/* Month Row */}
+//               <View style={styles.monthRow}>
+//                 <View style={{ width: 46 }} />
+//                 {weeks.map((_, weekIndex) => {
+//                   const marker = monthMarkers.find(m => m.weekIndex === weekIndex);
+//                   return (
+//                     <View key={weekIndex} style={{ width: 36, alignItems: "center" }}>
+//                       {marker ? (
+//                         <Text style={styles.monthText}>{marker.month}</Text>
+//                       ) : null}
+//                     </View>
+//                   );
+//                 })}
+//               </View>
+
+//               <View style={{ flexDirection: "row" }}>
+//                 {/* Weekday labels */}
+//                 <View style={{ marginRight: 6, width: 46 }}>
+//                   {weekdays.map((day) => (
+//                     <View key={day} style={{ height: 36, justifyContent: "center" }}>
+//                       <Text style={styles.weekdayText}>{day}</Text>
+//                     </View>
+//                   ))}
+//                 </View>
+
+//                 {/* Contribution Grid */}
+//                 <View style={{ flexDirection: "row" }}>
+//                   {weeks.map((week, weekIndex) => (
+//                     <View key={weekIndex} style={styles.weekColumn}>
+//                       {week.map((date, dayIndex) => {
+//                         const key = formatDate(date);
+//                         const status = attendanceData[key] ?? null;
+//                         return (
+//                           <Pressable
+//                             key={dayIndex}
+//                             onPress={() => handleDayPress(date)}
+//                           >
+//                             <View
+//                               style={[styles.dayBox, { backgroundColor: getStatusColor(status) }]}
+//                             >
+//                               <Text style={styles.dayText}>{date.getDate()}</Text>
+//                             </View>
+//                           </Pressable>
+//                         );
+//                       })}
+//                     </View>
+//                   ))}
+//                 </View>
+//               </View>
+//             </View>
+//           </ScrollView>
+//         </View>
+//     </ScrollView>
+//   );
+// };
+
+// export default adminStreak
+
+
+// const styles = StyleSheet.create({
+//   screen: {
+//     flex: 1,
+//     backgroundColor: "#f9fafb",
+//     padding: 16,
+//   },
+//   title: {
+//     fontSize: 34,
+//     fontWeight: "bold",
+//     color: "#111827",
+//     marginBottom: 20,
+//   },
+//   yesButton:{
+//     marginTop: 12,
+//     marginBottom: 14,
+//     backgroundColor: "#b8ea69ff",
+//     paddingVertical: 10,
+//     borderRadius: 8,
+//     alignItems: "center",
+//     width: 120,
+//   },
+//   inputBox: {
+//   borderColor: "#d1d5db",
+//   borderWidth: 1,
+//   borderRadius: 8,
+//   padding: 8,
+//   marginTop: 10,
+// },
+
+//   reportButton:{
+//     marginTop: 12,
+//     marginBottom: 14,
+//     backgroundColor: "#b567e5ff",
+//     paddingVertical: 10,
+//     borderRadius: 8,
+//     alignItems: "center",
+//     width: 120,
+//   },
+//   noButton:{
+//     marginTop: 12,
+//     marginBottom: 14,
+//     backgroundColor: "#b42953ff",
+//     paddingVertical: 10,
+//     borderRadius: 8,
+//     alignItems: "center",
+//     width: 120,
+//   },
+//   card: {
+//     backgroundColor: "white",
+//     borderRadius: 16,
+//     padding: 16,
+//     marginBottom: 20,
+//     shadowColor: "#000",
+//     shadowOpacity: 0.1,
+//     shadowOffset: { width: 0, height: 3 },
+//     shadowRadius: 6,
+//     elevation: 4,
+//   },
+//   cardTitle: {
+//     fontSize: 20,
+//     fontWeight: "600",
+//     marginBottom: 10,
+//     color: "#1f2937",
+//   },
+//   submitButton: {
+//     backgroundColor: "#17e95d",
+//     paddingVertical: 12,
+//     borderRadius: 8,
+//     alignItems: "center",
+//     marginTop: 10,
+//   },
+//   submitText: {
+//     color: "#fff",
+//     fontSize: 16,
+//     fontWeight: "bold",
+//   },
+//     summaryText: {
+//     fontSize: 14,
+//     color: "#111827",
+//     marginVertical: 2,
+//   },
+//   summarySubTitle: {
+//     fontSize: 16,
+//     fontWeight: "600",
+//     marginTop: 10,
+//     color: "#2563eb",
+//   },
+//   cardText: {
+//     fontSize: 16,
+//     color: "#374151",
+//     textAlign: "center",
+//   },
+//   innerBox: {
+//     backgroundColor: "#f3f4f6",
+//     borderRadius: 12,
+//     padding: 12,
+//     marginTop: 8,
+//   },
+//   streakHeader: {
+//     flexDirection: "row",
+//     alignItems: "center",
+//     justifyContent: "space-between",
+//   },
+//   streakIconWrapper: {
+//     backgroundColor: "#fff1f2",
+//     padding: 8,
+//     borderRadius: 50,
+//   },
+//   streakCounter: {
+//     fontSize: 24,
+//     fontWeight: "700",
+//     color: "#ef4444",
+//     marginVertical: 12,
+//     textAlign: "center",
+//   },
+//   monthRow: {
+//     flexDirection: "row",
+//     marginBottom: 6,
+//     alignItems: "center",
+//   },
+//   monthText: {
+//     fontSize: 12,
+//     fontWeight: "600",
+//     color: "#374151",
+//   },
+//   weekdayText: {
+//     fontSize: 12,
+//     color: "#6b7280",
+//   },
+//   weekColumn: {
+//     flexDirection: "column",
+//     marginHorizontal: 1,
+//   },
+//   dayBox: {
+//     width: 36,
+//     height: 36,
+//     margin: 1,
+//     borderRadius: 6,
+//     justifyContent: "center",
+//     alignItems: "center",
+//   },
+//   dayText: {
+//     fontSize: 12,
+//     fontWeight: "bold",
+//     color: "#111827",
+//   },
+//   monthRow: {
+//     flexDirection: "row",
+//     marginBottom: 6,
+//     alignItems: "center",
+//   },
+//   monthText: {
+//     fontSize: 12,
+//     fontWeight: "600",
+//     color: "#374151",
+//   },
+//   weekdayText: {
+//     fontSize: 12,
+//     color: "#6b7280",
+//   },
+//   weekColumn: {
+//     flexDirection: "column",
+//     marginHorizontal: 1,
+//   },
+//   dayBox: {
+//     width: 36,
+//     height: 36,
+//     margin: 1,
+//     borderRadius: 6,
+//     justifyContent: "center",
+//     alignItems: "center",
+//   },
+//   dayText: {
+//     fontSize: 12,
+//     fontWeight: "bold",
+//     color: "#111827",
+//   },
+// })
+
+
+// claude imporved code
+// adminStreak.jsx - Complete Fixed Version
 import { useAuth } from '@/app/contexts/AuthContext';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import Constants from 'expo-constants';
-// import { API } from '@env';
 import { useClass } from '@/app/contexts/ClassContext';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const STATUS = {
-  ABSENT: 0,
-  PRESENT: 1,
-  OTHER: 2,
+/* -------------------------
+   CalendarHeatmap Component
+   -------------------------
+   Same as userHome.jsx for consistency
+*/
+const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const COLORS = {
+  present: "#22c55e",
+  absent: "#ef4444",
+  other: "#3b82f6",
+  none: "#d1d5db"
 };
 
-const getStatusColor = (status) => {
-  switch (status) {
-    case STATUS.PRESENT: return "#22c55e";
-    case STATUS.ABSENT: return "#ef4444";
-    case STATUS.OTHER: return "#3b82f6";
-    default: return "#d1d5db";
-  }
-};
+function CalendarHeatmap({ year, attendanceData, onDayPress }) {
+  const { weeks, monthMarkers } = useMemo(() => {
+    const days = [];
+    const start = new Date(year, 0, 1);
+    let startWeekday = start.getDay();
+    if (startWeekday === 0) startWeekday = 7;
+    
+    // Add leading nulls for alignment
+    for (let i = 1; i < startWeekday; i++) days.push(null);
+    
+    // Add all days of year
+    const last = new Date(year, 11, 31);
+    const totalDays = Math.floor((last - start) / 86400000) + 1;
+    for (let i = 0; i < totalDays; i++) {
+      days.push(new Date(year, 0, i + 1));
+    }
+    
+    // Partition into weeks
+    const weekRows = [];
+    let w = [];
+    days.forEach((d) => {
+      w.push(d);
+      if (w.length === 7) {
+        weekRows.push(w);
+        w = [];
+      }
+    });
+    if (w.length > 0) weekRows.push(w);
+    
+    // Month markers
+    const markers = [];
+    weekRows.forEach((week, idx) => {
+      const firstReal = week.find(d => d !== null);
+      if (!firstReal) return;
+      if (firstReal.getDate() === 1) {
+        markers.push({ month: MONTHS[firstReal.getMonth()], weekIndex: idx });
+      }
+    });
+    
+    return { weeks: weekRows, monthMarkers: markers };
+  }, [year]);
+  
+  const keyFor = (date) => {
+    return new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 10);
+  };
+  
+  return (
+    <View style={{ marginTop: 10 }}>
+      {/* Month labels row */}
+      <View style={styles.monthRow}>
+        <View style={{ width: 46 }} />
+        {weeks.map((_, wIdx) => {
+          const marker = monthMarkers.find(m => m.weekIndex === wIdx);
+          return (
+            <View key={wIdx} style={{ width: 36, alignItems: "center" }}>
+              {marker ? <Text style={styles.monthText}>{marker.month}</Text> : null}
+            </View>
+          );
+        })}
+      </View>
+      
+      {/* Weekday labels + grid */}
+      <View style={{ flexDirection: "row" }}>
+        {/* Weekday labels column */}
+        <View style={{ marginRight: 6, width: 46 }}>
+          {WEEKDAYS.map(day => (
+            <View key={day} style={{ height: 36, justifyContent: "center" }}>
+              <Text style={styles.weekdayText}>{day}</Text>
+            </View>
+          ))}
+        </View>
+        
+        {/* Grid: week columns */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: 16 }}>
+          <View style={{ flexDirection: "row" }}>
+            {weeks.map((week, weekIndex) => (
+              <View key={weekIndex} style={styles.weekColumn}>
+                {week.map((date, dIdx) => {
+                  if (!date) {
+                    return <View key={dIdx} style={[styles.dayBox, { backgroundColor: COLORS.none }]} />;
+                  }
+                  const key = keyFor(date);
+                  const status = attendanceData?.[key] ?? "none";
+                  const bg = COLORS[status] ?? COLORS.none;
+                  return (
+                    <Pressable key={dIdx} onPress={() => onDayPress && onDayPress(date)}>
+                      <View style={[styles.dayBox, { backgroundColor: bg }]}>
+                        <Text style={styles.dayText}>{date.getDate()}</Text>
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ))}
+          </View>
+        </ScrollView>
+      </View>
+    </View>
+  );
+}
 
-const weekdays = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-
-const adminStreak = () => {
+/* ------------------------
+   Full AdminStreak component
+   ------------------------ */
+const AdminStreak = () => {
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const palette = colorScheme === 'dark'
     ? { bg:'#0b0f14', card:'#0f172a', text:'#e5e7eb', sub:'#94a3b8', border:'#1f2937' }
     : { bg:'#f9fafb', card:'#ffffff', text:'#111827', sub:'#374151', border:'#e5e7eb' };
-  const [isjoined, setJoined] = React.useState(null); 
-  const [attendanceSubmitted, setAttendanceSubmitted] = React.useState(false); // new
-  const [todayNote, setTodayNote] = React.useState("");
-  const [excuse, setExcuse] = React.useState("");
-  const [isReportView, setIsReportView] = React.useState(null); 
-  const [selectedTime, setSelectedTime] = React.useState(new Date());
-  const [showTimePicker, setShowTimePicker] = React.useState(false);
-  const [currentMonth, setCurrentMonth] = React.useState({present:0,absent:0,other:0});
-  const [currentYear, setCurrentYear] = React.useState({present:0,absent:0,other:0});
-  // const API = 'https://streak-app-production.up.railway.app';
-  const API = Constants.expoConfig.extra.API_URL;
-  // Graph state (mock data for admin)
+  
+  const [isjoined, setJoined] = useState(null); 
+  const [attendanceSubmitted, setAttendanceSubmitted] = useState(false);
+  const [isReportView, setIsReportView] = useState(null); 
+  const [currentMonth, setCurrentMonth] = useState({ present: 0, absent: 0, other: 0 });
+  const [currentYear, setCurrentYear] = useState({ present: 0, absent: 0, other: 0 });
   const [attendanceData, setAttendanceData] = useState({});
+  const [streak, setStreak] = useState(0);
+  const [bestStreak, setBestStreak] = useState(0);
+  
+  const API = Constants.expoConfig.extra.API_URL;
   const { apiCall } = useAuth();
   const { selectedClass } = useClass();
-  const USE_MOCK = false;
-
-  const year = 2025;
-  const days = useMemo(() => {
-    const list = [];
-    for (let i = 0; i < 365; i++) list.push(new Date(year, 0, 1 + i));
-    return list;
-  }, []);
-
-  const weeks = useMemo(() => {
-    const out = [];
-    let w = [];
-    days.forEach((d) => {
-      w.push(d);
-      if (w.length === 7) { out.push(w); w = []; }
+  const YEAR = new Date().getFullYear();
+  
+  // Convert backend calendar array into map { "YYYY-MM-DD": "present" | "absent" | "other" }
+  const mapCalendarToAttendance = (calendarArray = []) => {
+    const mapped = {};
+    (calendarArray || []).forEach(({ date, status }) => {
+      if (!date) return;
+      const normalized = status === 'present' ? 'present' :
+                         status === 'absent' ? 'absent' : 'other';
+      mapped[date] = normalized;
     });
-    return out;
-  }, [days]);
-
-  const monthMarkers = useMemo(() => {
-    const markers = [];
-    weeks.forEach((week, idx) => {
-      const firstDay = week[0];
-      if (firstDay.getDate() <= 7) markers.push({ month: months[firstDay.getMonth()], weekIndex: idx });
-    });
-    return markers;
-  }, [weeks]);
-
-  const formatDate = (date) => {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
+    return mapped;
   };
-
-  // Load calendar and prevent re-marking if already marked today
+  
+  // Load all data when component mounts or selectedClass changes
   useEffect(() => {
-    const loadCalendar = async () => {
-      if (!selectedClass) return;
+    if (!selectedClass) return;
+    
+    let mounted = true;
+    
+    const loadAll = async () => {
       try {
-        if (USE_MOCK) return;
-        const res = await apiCall(`${API}/admin/calendar/${selectedClass.id}`, {
+        // Calendar
+        const cal = await apiCall(`${API}/admin/calendar/${selectedClass.id}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
         });
-        const mapped = {};
-        (res?.calendar || []).forEach(({ date, status }) => {
-          const s = status === 'present' ? STATUS.PRESENT : status === 'absent' ? STATUS.ABSENT : STATUS.OTHER;
-          mapped[date] = s;
-        });
-        setAttendanceData(mapped);
-
-        // Prevent re-marking if today exists
-        // const todayKey = new Date(Date.now() - (new Date()).getTimezoneOffset()*60000).toISOString().slice(0,10);
-        const todayKey = formatDate(new Date());
-        console.log("Today Key:", todayKey);
-        const t = mapped[todayKey];
-        if (t !== undefined) {
+        
+        const mapped = mapCalendarToAttendance(cal?.calendar || []);
+        if (mounted) setAttendanceData(mapped);
+        
+        // Check if today is already marked
+        const todayKey = new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)
+          .toISOString()
+          .slice(0, 10);
+        const todayRec = (cal?.calendar || []).find((c) => c.date === todayKey);
+        if (todayRec && mounted) {
           setAttendanceSubmitted(true);
-          setJoined(t === STATUS.PRESENT);
+          setJoined(todayRec.status === 'present');
         }
+        
+        // Personal Report
+        const personalReport = await apiCall(`${API}/admin/personalReport/${selectedClass.id}`, {
+          method: 'GET',
+          headers: { "Content-Type": "application/json" },
+        });
+        
+        if (mounted && personalReport?.personal_report) {
+          const cm = personalReport.personal_report.current_month;
+          const cy = personalReport.personal_report.current_year;
+          setCurrentMonth({
+            present: cm.present,
+            absent: cm.absent,
+            other: cm.not_marked,
+          });
+          setCurrentYear({
+            present: cy.present,
+            absent: cy.absent,
+            other: cy.not_marked,
+          });
+        }
+        
+        // Streak
+        const streakResp = await apiCall(`${API}/admin/streak/${selectedClass.id}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        
+        if (mounted && streakResp) {
+          setStreak(streakResp.currentStreak ?? 0);
+          setBestStreak(streakResp.bestStreak ?? 0);
+        }
+        
       } catch (e) {
-        // ignore
+        console.error("Error loading admin streak data:", e);
       }
     };
-    loadCalendar();
+    
+    loadAll();
+    
+    return () => { mounted = false; };
   }, [selectedClass]);
-
+  
   const handleDayPress = (date) => {
-    const key = formatDate(date);
-    const status = attendanceData[key] ?? null;
+    if (!date) return;
+    const key = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 10);
+    const status = attendanceData[key] ?? "none";
     let message;
-    if (status === STATUS.PRESENT) message = "✅ Present";
-    else if (status === STATUS.ABSENT) message = "❌ Absent";
-    else if (status === STATUS.OTHER) message = "ℹ️ Not Marked";
+    if (status === 'present') message = "✅ Present";
+    else if (status === 'absent') message = "❌ Absent";
+    else if (status === 'other') message = "ℹ️ Other";
     else message = "No data available";
     Alert.alert(`Date: ${key}`, message);
   };
-
+  
   const todayDate = new Date().toLocaleDateString();
-  console.log("Today's Date:", todayDate);
-  const formatTime = (date) => {
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    return `${hours}:${minutes}`;
-  };
-
-
-  const pickerStyle = {
-  inputIOS: {
-    borderColor: "#d1d5db",
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 8,
-    marginTop: 10,
-  },
-  inputAndroid: {
-    borderColor: "#d1d5db",
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 8,
-    marginTop: 10,
-  },
-};
-
-  const reportData = async () => {
-    
-    const personalReport = await apiCall(`${API}/admin/personalReport/${selectedClass.id}`,{
-      method: `GET`,
-      headers: {"Content-Type": "application/json"},
-    });
-    let cm,cy ;
-    cm = personalReport.personal_report.current_month; cy = personalReport.personalReport.current_year;
-    setCurrentMonth({
-      present: cm.present,
-      absent: cm.absent,
-      other: cm.not_marked,
-    });
-    setCurrentYear({
-      present: cy.present,
-      absent: cy.absent,
-      other: cy.not_marked,
-    });
-  }
-
-
-  // 👉 Joined summary with validation
-const renderJoinedSummary = () => (
-  <>
-    <Text style={styles.cardTitle}>Attendance Summary</Text>
-    <Text style={styles.summaryText}>You have joined today's class. Great job!</Text>
-
-    {/* Note input */}
-    {/* <TextInput
-      style={styles.inputBox}
-      placeholder="Any notes for today?"
-      value={todayNote}
-      onChangeText={setTodayNote}
-      multiline
-    /> */}
-
-    {/* Time spent selector */}
-    {/* <TouchableOpacity
-      style={styles.inputBox}
-      onPress={() => setShowTimePicker(true)}
-    >
-      <Text>
-        {selectedTime
-          ? `Time spent: ${formatTime(selectedTime)}`
-          : "Select time spent"}
+  
+  // Render functions
+  const renderJoinedSummary = () => (
+    <>
+      <Text style={[styles.cardTitle, { color: palette.text }]}>Attendance Summary</Text>
+      <Text style={[styles.summaryText, { color: palette.text }]}>
+        You have joined today's class. Great job!
       </Text>
-    </TouchableOpacity> */}
-
-    {/* {showTimePicker && (
-      <DateTimePicker
       
-        value={selectedTime}
-        mode="time"
-        is24Hour={true}
-        display="default"
-        onChange={(event, date) => {
-          setShowTimePicker(false);
-          if (date) setSelectedTime(date);
+      <TouchableOpacity
+        style={styles.submitButton}
+        disabled={attendanceSubmitted}
+        onPress={async () => {
+          const todayKey = new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)
+            .toISOString()
+            .slice(0, 10);
+          try {
+            await apiCall(`${API}/admin/markAttendance/${selectedClass.id}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status: 'present' }),
+            });
+            setAttendanceData(prev => ({ ...prev, [todayKey]: 'present' }));
+            setAttendanceSubmitted(true);
+          } catch (e) {
+            Alert.alert('Error', e.message || 'Failed to mark attendance');
+          }
         }}
-      />
-    )} */}
-
-    {/* Submit with validation */}
-    <TouchableOpacity
-      style={styles.submitButton}
-      disabled={attendanceSubmitted}
-      onPress={() => {
-        // if (!todayNote.trim()) {
-        //   alert("⚠️ Please enter a note before submitting!");
-        //   return;
-        // }
-        // if (!selectedTime) {
-        //   alert("⚠️ Please select the time spent before submitting!");
-        //   return;
-        // }
-        //  const todayKey = new Date(Date.now() - (new Date()).getTimezoneOffset()*60000).toISOString().slice(0,10);
-        const todayKey = formatDate(new Date());
-        const doSubmit = async () => {
+      >
+        <Text style={styles.submitText}>Submit</Text>
+      </TouchableOpacity>
+    </>
+  );
+  
+  const renderExcuseForm = () => (
+    <>
+      <Text style={[styles.summaryText, { color: palette.text }]}>
+        You didn't join today's class? No worries, it happens sometimes
+      </Text>
+      <TouchableOpacity
+        style={styles.submitButton}
+        onPress={async () => {
+          const todayKey = new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)
+            .toISOString()
+            .slice(0, 10);
           try {
-            if (!USE_MOCK) {
-              await apiCall(`${API}/admin/markAttendance/${selectedClass.id}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: 'present' }),
-              });
-            }
-            setAttendanceData(prev => ({ ...prev, [todayKey]: STATUS.PRESENT }));
+            await apiCall(`${API}/admin/markAttendance/${selectedClass.id}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status: 'absent' }),
+            });
+            setAttendanceData(prev => ({ ...prev, [todayKey]: 'absent' }));
             setAttendanceSubmitted(true);
           } catch (e) {
             Alert.alert('Error', e.message || 'Failed to mark attendance');
           }
-        };
-        doSubmit();
-      }}
-    >
-      <Text style={styles.submitText}>Submit</Text>
-    </TouchableOpacity>
-  </>
-);
-
-//     const excuseOptions = [
-//   { label: 'Out of station', value: 'Out of station' },
-//   { label: 'Health issue', value: 'Health issue' },
-//   { label: 'Very genuine', value: 'Very genuine' },
-//   { label: 'Excuses', value: 'Excuses' },
-// ];
-
-// 👉 Excuse form with validation
-const renderExcuseForm = () => (
-  <>
-    {/* <Text style={styles.cardTitle}>Reason for not joining ?</Text>
-    <RNPickerSelect
-      onValueChange={setExcuse}
-      value={excuse}
-      placeholder={{ label: "Select a reason...", value: null }}
-      items={excuseOptions}
-      style={pickerStyle}
-      useNativeAndroidPickerStyle={false}
-    /> */}
-    <Text style={styles.summaryText}>You didn't joined today's class ? No Worries It happens sometimes</Text>
-    <TouchableOpacity
-      style={styles.submitButton}
-      onPress={() => {
-        // if (!excuse) {
-        //   alert("⚠️ Please select a reason before submitting!");
-        //   return;
-        // }
-        // const todayKey = new Date(Date.now() - (new Date()).getTimezoneOffset()*60000).toISOString().slice(0,10);
-        const todayKey = formatDate(new Date());
-        const doSubmit = async () => {
-          try {
-            if (!USE_MOCK) {
-              await apiCall(`${API}/admin/markAttendance/${selectedClass.id}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: 'absent' }),
-              });
-            }
-            setAttendanceData(prev => ({ ...prev, [todayKey]: STATUS.ABSENT }));
-            setAttendanceSubmitted(true);
-          } catch (e) {
-            Alert.alert('Error', e.message || 'Failed to mark attendance');
-          }
-        };
-        doSubmit();
-      }}
-    >
-      <Text style={styles.submitText}>Submit</Text>
-    </TouchableOpacity>
-  </>
-);
-
-
-  // 👉 After attendance submitted, show confirmation card
+        }}
+      >
+        <Text style={styles.submitText}>Submit</Text>
+      </TouchableOpacity>
+    </>
+  );
+  
   const renderAttendanceConfirmation = () => (
-    <View style={styles.card}>
-      <Text style={styles.cardTitle}>Attendance Marked</Text>
-      <Text style={styles.summaryText}>
+    <View style={[styles.card, { backgroundColor: palette.card, borderColor: palette.border }]}>
+      <Text style={[styles.cardTitle, { color: palette.text }]}>Attendance Marked</Text>
+      <Text style={[styles.summaryText, { color: palette.text }]}>
         You have marked your attendance for {todayDate} as{" "}
         {isjoined ? "✅ Present" : "❌ Absent"}
       </Text>
     </View>
   );
-
-  // 👉 Monthly Report
+  
   const renderMonthlyReport = () => (
-  <>
-    <Text style={styles.cardTitle}>Monthly Report</Text>
-    <Text style={styles.summaryText}>Total Classes Joined: {currentMonth.present}</Text>
-    <Text style={styles.summaryText}>Total Classes Missed: {currentMonth.absent}</Text>
-    <Text style={styles.summaryText}>Best Monthly Streak: P_TBA</Text>
-    <View style={styles.streakHeader}>
-      <Text style={styles.streakCounter}>Current Streak: P_Streak days</Text>
-      <View style={styles.streakIconWrapper}>
-        <Text style={{ fontSize: 24 }}>🔥</Text>
+    <>
+      <Text style={[styles.cardTitle, { color: palette.text }]}>Monthly Report</Text>
+      <Text style={[styles.summaryText, { color: palette.text }]}>
+        Total Classes Joined: {currentMonth.present}
+      </Text>
+      <Text style={[styles.summaryText, { color: palette.text }]}>
+        Total Classes Missed: {currentMonth.absent}
+      </Text>
+      <View style={styles.streakHeader}>
+        <Text style={styles.streakCounter}>Current Streak: {streak} days</Text>
+        <View style={styles.streakIconWrapper}>
+          <Text style={{ fontSize: 24 }}>🔥</Text>
+        </View>
       </View>
-      
-    </View>
-  </>
-);
-
-const renderYearlyReport = () => (
-  <>
-    <Text style={styles.cardTitle}>Yearly Report</Text>
-    <Text style={styles.summaryText}>Total Classes Joined: {currentYear.present}</Text>
-    <Text style={styles.summaryText}>Total Classes Missed: {currentYear.absent}</Text>
-    <Text style={styles.summaryText}>Best Yearly Streak: P_TBA</Text>
-    <View style={styles.streakHeader}>
-      <Text style={styles.streakCounter}>Longest Streak: P_Streak days</Text>
-      <View style={styles.streakIconWrapper}>
-        <Text style={{ fontSize: 24 }}>🔥</Text>
+    </>
+  );
+  
+  const renderYearlyReport = () => (
+    <>
+      <Text style={[styles.cardTitle, { color: palette.text }]}>Yearly Report</Text>
+      <Text style={[styles.summaryText, { color: palette.text }]}>
+        Total Classes Joined: {currentYear.present}
+      </Text>
+      <Text style={[styles.summaryText, { color: palette.text }]}>
+        Total Classes Missed: {currentYear.absent}
+      </Text>
+      <View style={styles.streakHeader}>
+        <Text style={styles.streakCounter}>Best Streak: {bestStreak} days</Text>
+        <View style={styles.streakIconWrapper}>
+          <Text style={{ fontSize: 24 }}>🔥</Text>
+        </View>
       </View>
-    </View>
-  </>
-);
-
-
+    </>
+  );
+  
   return (
-    <ScrollView style={[styles.screen,{backgroundColor: palette.bg}]} contentContainerStyle={{ paddingBottom: insets.bottom + 24, paddingTop: insets.top }}>
-      <Text style={[styles.title,{color: palette.text}]}> Today's Attendance </Text>
-
-      {/* Class Entry */}
-      {!attendanceSubmitted && (
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Class Entry</Text>
-        <View style={styles.innerBox}>
-          <Text style={styles.cardText}>Joined Today's Class ?</Text>
-          <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
-            
-            {/* Yes Button */}
-            <TouchableOpacity
-              style={[
-                styles.yesButton,
-                isjoined === true && { backgroundColor: "#4ade80" } // highlight active
-              ]}
-              onPress={() => setJoined(isjoined === true ? null : true)} // toggle
-            >
-              <Text style={{ color: "white", fontWeight: "600" }}>Yes, I did!</Text>
-            </TouchableOpacity>
-
-            {/* No Button */}
-            <TouchableOpacity
-              style={[
-                styles.noButton,
-                isjoined === false && { backgroundColor: "#f43f5e" } // highlight active
-              ]}
-              onPress={() => setJoined(isjoined === false ? null : false)} // toggle
-            >
-              <Text style={{ color: "white", fontWeight: "600" }}>No, Missed it</Text>
-            </TouchableOpacity>
-
+    <View style={[styles.safeContainer, { paddingTop: insets.top, backgroundColor: palette.bg }]}>
+      <ScrollView 
+        style={{ flex: 1 }} 
+        contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 24 }}
+      >
+        <Text style={[styles.title, { color: palette.text }]}>Today's Attendance</Text>
+        
+        {/* Class Entry */}
+        {!attendanceSubmitted && (
+          <View style={[styles.card, { backgroundColor: palette.card, borderColor: palette.border }]}>
+            <Text style={[styles.cardTitle, { color: palette.text }]}>Class Entry</Text>
+            <View style={[styles.innerBox, { backgroundColor: colorScheme === 'dark' ? '#111827' : '#f3f4f6' }]}>
+              <Text style={[styles.cardText, { color: palette.text }]}>Joined Today's Class?</Text>
+              <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
+                <TouchableOpacity
+                  style={[
+                    styles.yesButton,
+                    isjoined === true && { backgroundColor: "#4ade80" }
+                  ]}
+                  onPress={() => setJoined(isjoined === true ? null : true)}
+                >
+                  <Text style={{ color: "white", fontWeight: "600" }}>Yes, I did!</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  style={[
+                    styles.noButton,
+                    isjoined === false && { backgroundColor: "#f43f5e" }
+                  ]}
+                  onPress={() => setJoined(isjoined === false ? null : false)}
+                >
+                  <Text style={{ color: "white", fontWeight: "600" }}>No, Missed it</Text>
+                </TouchableOpacity>
               </View>
             </View>
           </View>
         )}
-
-      {/* Show form or confirmation */}
-      {!attendanceSubmitted && isjoined !== null && (
-        <View style={styles.card}>
-          {isjoined ? renderJoinedSummary() : renderExcuseForm()}
-        </View>
-      )}
-      {attendanceSubmitted && renderAttendanceConfirmation()}
-
-      {/* Report Section */}
-      <View style={[styles.card,{backgroundColor: palette.card, borderWidth:1, borderColor: palette.border}] }>
-          <Text style={[styles.cardTitle,{color: palette.text}]}>Report</Text>
-          <View style={[styles.innerBox,{backgroundColor: colorScheme==='dark' ? '#111827' : '#f3f4f6'}]}>
+        
+        {/* Show form or confirmation */}
+        {!attendanceSubmitted && isjoined !== null && (
+          <View style={[styles.card, { backgroundColor: palette.card, borderColor: palette.border }]}>
+            {isjoined ? renderJoinedSummary() : renderExcuseForm()}
+          </View>
+        )}
+        {attendanceSubmitted && renderAttendanceConfirmation()}
+        
+        {/* Report Section */}
+        <View style={[styles.card, { backgroundColor: palette.card, borderWidth: 1, borderColor: palette.border }]}>
+          <Text style={[styles.cardTitle, { color: palette.text }]}>Report</Text>
+          <View style={[styles.innerBox, { backgroundColor: colorScheme === 'dark' ? '#111827' : '#f3f4f6' }]}>
             <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
               <TouchableOpacity
                 style={[
                   styles.reportButton,
                   isReportView === true && { backgroundColor: "#7c3aed" }
                 ]}
-                onPress={() => setIsReportView(isReportView === true ? null : true)} // toggle
+                onPress={() => setIsReportView(isReportView === true ? null : true)}
               >
                 <Text style={styles.cardText}>Monthly Report</Text>
               </TouchableOpacity>
-
+              
               <TouchableOpacity
                 style={[
                   styles.reportButton,
                   isReportView === false && { backgroundColor: "#7c3aed" }
                 ]}
-                onPress={() => setIsReportView(isReportView === false ? null : false)} // toggle
+                onPress={() => setIsReportView(isReportView === false ? null : false)}
               >
                 <Text style={styles.cardText}>Yearly Report</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
-
+        
         {isReportView !== null && (
-          <View style={[styles.card,{backgroundColor: palette.card, borderWidth:1, borderColor: palette.border}] }>
+          <View style={[styles.card, { backgroundColor: palette.card, borderWidth: 1, borderColor: palette.border }]}>
             {isReportView ? renderMonthlyReport() : renderYearlyReport()}
           </View>
         )}
-
-        {/* Streak Graph (same as user) */}
-        <View style={[styles.card,{backgroundColor: palette.card, borderWidth:1, borderColor: palette.border}] }>
+        
+        {/* Streak Graph */}
+        <View style={[styles.card, { backgroundColor: palette.card, borderWidth: 1, borderColor: palette.border }]}>
           <View style={styles.streakHeader}>
-            <Text style={[styles.cardTitle,{color: palette.text}]}>Streak</Text>
+            <Text style={[styles.cardTitle, { color: palette.text }]}>Streak</Text>
             <Animatable.View 
               animation="pulse" 
               easing="ease-out" 
@@ -444,82 +1139,37 @@ const renderYearlyReport = () => (
               <MaterialCommunityIcons name="fire" size={32} color="#ff6b6b" />
             </Animatable.View>
           </View>
-          <Text style={[styles.streakCounter,{color: colorScheme==='dark' ? '#fca5a5' : '#ef4444'}]}>🔥 20 Days</Text>
-
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={{ flexDirection: "column" }}>
-              {/* Month Row */}
-              <View style={styles.monthRow}>
-                <View style={{ width: 46 }} />
-                {weeks.map((_, weekIndex) => {
-                  const marker = monthMarkers.find(m => m.weekIndex === weekIndex);
-                  return (
-                    <View key={weekIndex} style={{ width: 36, alignItems: "center" }}>
-                      {marker ? (
-                        <Text style={styles.monthText}>{marker.month}</Text>
-                      ) : null}
-                    </View>
-                  );
-                })}
-              </View>
-
-              <View style={{ flexDirection: "row" }}>
-                {/* Weekday labels */}
-                <View style={{ marginRight: 6, width: 46 }}>
-                  {weekdays.map((day) => (
-                    <View key={day} style={{ height: 36, justifyContent: "center" }}>
-                      <Text style={styles.weekdayText}>{day}</Text>
-                    </View>
-                  ))}
-                </View>
-
-                {/* Contribution Grid */}
-                <View style={{ flexDirection: "row" }}>
-                  {weeks.map((week, weekIndex) => (
-                    <View key={weekIndex} style={styles.weekColumn}>
-                      {week.map((date, dayIndex) => {
-                        const key = formatDate(date);
-                        const status = attendanceData[key] ?? null;
-                        return (
-                          <Pressable
-                            key={dayIndex}
-                            onPress={() => handleDayPress(date)}
-                          >
-                            <View
-                              style={[styles.dayBox, { backgroundColor: getStatusColor(status) }]}
-                            >
-                              <Text style={styles.dayText}>{date.getDate()}</Text>
-                            </View>
-                          </Pressable>
-                        );
-                      })}
-                    </View>
-                  ))}
-                </View>
-              </View>
-            </View>
-          </ScrollView>
+          <Text style={[styles.streakCounter, { color: colorScheme === 'dark' ? '#fca5a5' : '#ef4444' }]}>
+            🔥 {streak} Days
+          </Text>
+          
+          {/* Calendar Heatmap */}
+          <CalendarHeatmap
+            year={YEAR}
+            attendanceData={attendanceData}
+            onDayPress={handleDayPress}
+          />
         </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 };
 
-export default adminStreak
+export default AdminStreak;
 
-
+/* -------------------------
+   Styles
+   ------------------------- */
 const styles = StyleSheet.create({
-  screen: {
+  safeContainer: {
     flex: 1,
-    backgroundColor: "#f9fafb",
-    padding: 16,
   },
   title: {
-    fontSize: 34,
-    fontWeight: "bold",
-    color: "#111827",
+    fontSize: 28,
+    fontWeight: "700",
     marginBottom: 20,
   },
-  yesButton:{
+  yesButton: {
     marginTop: 12,
     marginBottom: 14,
     backgroundColor: "#b8ea69ff",
@@ -528,15 +1178,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: 120,
   },
-  inputBox: {
-  borderColor: "#d1d5db",
-  borderWidth: 1,
-  borderRadius: 8,
-  padding: 8,
-  marginTop: 10,
-},
-
-  reportButton:{
+  reportButton: {
     marginTop: 12,
     marginBottom: 14,
     backgroundColor: "#b567e5ff",
@@ -545,7 +1187,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: 120,
   },
-  noButton:{
+  noButton: {
     marginTop: 12,
     marginBottom: 14,
     backgroundColor: "#b42953ff",
@@ -555,21 +1197,15 @@ const styles = StyleSheet.create({
     width: 120,
   },
   card: {
-    backgroundColor: "white",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 3 },
-    shadowRadius: 6,
-    elevation: 4,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
+    borderWidth: 1,
   },
   cardTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    marginBottom: 10,
-    color: "#1f2937",
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 8,
   },
   submitButton: {
     backgroundColor: "#17e95d",
@@ -583,26 +1219,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-    summaryText: {
+  summaryText: {
     fontSize: 14,
-    color: "#111827",
     marginVertical: 2,
   },
-  summarySubTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginTop: 10,
-    color: "#2563eb",
-  },
   cardText: {
-    fontSize: 16,
+    fontSize: 14,
     color: "#374151",
     textAlign: "center",
   },
   innerBox: {
-    backgroundColor: "#f3f4f6",
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: 8,
+    padding: 10,
     marginTop: 8,
   },
   streakHeader: {
@@ -613,19 +1241,18 @@ const styles = StyleSheet.create({
   streakIconWrapper: {
     backgroundColor: "#fff1f2",
     padding: 8,
-    borderRadius: 50,
+    borderRadius: 40,
   },
   streakCounter: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#ef4444",
+    fontSize: 22,
+    fontWeight: "800",
     marginVertical: 12,
     textAlign: "center",
   },
   monthRow: {
     flexDirection: "row",
-    marginBottom: 6,
     alignItems: "center",
+    marginBottom: 6,
   },
   monthText: {
     fontSize: 12,
@@ -643,47 +1270,13 @@ const styles = StyleSheet.create({
   dayBox: {
     width: 36,
     height: 36,
-    margin: 1,
+    marginBottom: 2,
     borderRadius: 6,
     justifyContent: "center",
     alignItems: "center",
   },
   dayText: {
     fontSize: 12,
-    fontWeight: "bold",
-    color: "#111827",
+    fontWeight: "700",
   },
-  monthRow: {
-    flexDirection: "row",
-    marginBottom: 6,
-    alignItems: "center",
-  },
-  monthText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#374151",
-  },
-  weekdayText: {
-    fontSize: 12,
-    color: "#6b7280",
-  },
-  weekColumn: {
-    flexDirection: "column",
-    marginHorizontal: 1,
-  },
-  dayBox: {
-    width: 36,
-    height: 36,
-    margin: 1,
-    borderRadius: 6,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  dayText: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#111827",
-  },
-})
-
-
+});

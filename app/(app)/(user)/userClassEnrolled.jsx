@@ -32,7 +32,7 @@ const UserClassEnrolled = () => {
         });
 
             
-            console.log('API response data:', data);
+            // console.log('API response data:', data);
 
             // Handle different response structures
             let classesData = [];
@@ -51,7 +51,7 @@ const UserClassEnrolled = () => {
                 classesData = [];
             }
             
-            console.log('Processed classes data:', classesData);
+            // console.log('Processed classes data:', classesData);
             
             // Transform the API response to match your expected format
             const transformedClasses = classesData.map(classItem => ({
@@ -65,7 +65,7 @@ const UserClassEnrolled = () => {
                 created_by_admin_id: classItem.created_by_admin_id
             }));
             
-            console.log('Transformed classes:', transformedClasses);
+            // console.log('Transformed classes:', transformedClasses);
             setClasses(transformedClasses);
             
         } catch (err) {
@@ -89,7 +89,7 @@ const UserClassEnrolled = () => {
     
 
     useEffect(() => {
-        console.log("User info from user Class Enrolled ",user);
+        // console.log("User info from user Class Enrolled ",user);
         if (user && access_token) {
             fetchClasses();
         } else {
@@ -109,7 +109,7 @@ const UserClassEnrolled = () => {
         // router.push(`/(user)/(tabs)/userHome/${classId}`);
         selectClass(classItem);
         console.log("From CLASS ENROLLED You pressed this CLASS ");
-        console.log("Class details ", classItem);
+        // console.log("Class details ", classItem);
         router.push("/(user)/(tabs)/userHome");
     };
 
