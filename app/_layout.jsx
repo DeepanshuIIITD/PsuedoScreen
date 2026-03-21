@@ -1,8 +1,9 @@
 
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
-import { Image, Text, View } from 'react-native';
+import { Appearance, Image, Text, View } from 'react-native';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+
 console.log("🔵 1. ROOT LAYOUT - Mounting");
 function LoadingScreen() {
   return <Text>Loading...</Text>;
@@ -34,7 +35,9 @@ function RootLayoutNav() {
   const router = useRouter();
 
   
-
+  // Appearance.setColorScheme('light'); // Force light mode
+  if (typeof Appearance?.setColorScheme === 'function') { Appearance.setColorScheme('light'); }
+  
   useEffect(() => {
     if (isLoading) return;
 

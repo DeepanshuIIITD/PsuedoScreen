@@ -1,5 +1,7 @@
-// // import { API } from "@env";
+// // claude updated version removed mock part
+
 // import DateTimePicker from '@react-native-community/datetimepicker';
+// import Constants from 'expo-constants';
 // import { router } from "expo-router";
 // import React from "react";
 // import {
@@ -12,7 +14,6 @@
 //   TextInput,
 //   View,
 // } from "react-native";
-// import Constants from "expo-constants";
 // import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // const Signup = () => {
@@ -35,9 +36,7 @@
 
 //   const insets = useSafeAreaInsets();
 
-//   // const API = 'https://streak-app-production.up.railway.app';
-//   const API = Constants.expoConfig.extra.API_URL;
-//   const USE_MOCK = false; // Toggle mocked APIs for OTP + Signup
+//   const API = Constants.expoConfig?.extra?.API_URL || 'https://streak-app-uxyv.onrender.com';
 
 //   // Timer effect for resend functionality
 //   React.useEffect(() => {
@@ -67,37 +66,20 @@
 
 //     try {
 //       console.log('Sending OTP to mobile:', mobile);
-//       if (USE_MOCK) {
-//         // Expected backend API (commented)
-//         Request: POST `${API}/user/sendOTP`
-//         // Body:
-//         // { "phone": string }
-//         // Response 200:
-//         // { "success": true, "delivery": "whatsapp" | "sms" }
-//         // Response 400:
-//         // { "error": string }
-//         const data = { success: true, delivery: 'sms' };
+//       const response = await fetch(`${API}/user/sendOTP`, {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({ phone: mobile }),
+//       });
+//       const data = await response.json();
+//       if (response.ok) {
 //         setOtpSent(true);
 //         alert("OTP sent successfully! Check your WhatsApp/SMS.");
-//         console.log('OTP sent successfully (mock):', data);
+//         console.log('OTP sent successfully:', data);
 //         setResendTimer(120);
 //         setCanResend(false);
 //       } else {
-//         const response = await fetch(`${API}/user/sendOTP`, {
-//           method: 'POST',
-//           headers: { 'Content-Type': 'application/json' },
-//           body: JSON.stringify({ phone: mobile }),
-//         });
-//         const data = await response.json();
-//         if (response.ok) {
-//           setOtpSent(true);
-//           alert("OTP sent successfully! Check your WhatsApp/SMS.");
-//           console.log('OTP sent successfully:', data);
-//           setResendTimer(120);
-//           setCanResend(false);
-//         } else {
-//           throw new Error(data.error || 'Failed to send OTP');
-//         }
+//         throw new Error(data.error || 'Failed to send OTP');
 //       }
 //     } catch (error) {
 //       console.error('OTP sending error:', error);
@@ -136,30 +118,16 @@
 
 //     try {
 //       console.log('Verifying OTP...');
-//       if (USE_MOCK) {
-//         // Expected backend API (commented)
-//         Request: POST `${API}/user/verifyOTP`
-//         // Body:
-//         // { "phone": string, "otp": string }
-//         // Response 200:
-//         // { "valid": true }
-//         // Response 400:
-//         // { "error": string }
-//         const otpVerifyData = { valid: otp === '123456' || otp?.length === 6 };
-//         if (!otpVerifyData.valid) throw new Error('Invalid OTP');
-//         console.log('OTP verified successfully (mock), proceeding with signup...');
-//       } else {
-//         const otpVerifyResponse = await fetch(`${API}/user/verifyOTP`, {
-//           method: 'POST',
-//           headers: { 'Content-Type': 'application/json' },
-//           body: JSON.stringify({ phone: mobile, otp: otp }),
-//         });
-//         const otpVerifyData = await otpVerifyResponse.json();
-//         if (!otpVerifyResponse.ok) {
-//           throw new Error(otpVerifyData.error || 'Invalid OTP');
-//         }
-//         console.log('OTP verified successfully, proceeding with signup...');
+//       const otpVerifyResponse = await fetch(`${API}/user/verifyOTP`, {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({ phone: mobile, otp: otp }),
+//       });
+//       const otpVerifyData = await otpVerifyResponse.json();
+//       if (!otpVerifyResponse.ok) {
+//         throw new Error(otpVerifyData.error || 'Invalid OTP');
 //       }
+//       console.log('OTP verified successfully, proceeding with signup...');
 
 //       const signupData = {
 //         userName: userName,
@@ -171,46 +139,20 @@
 //         password: password,
 //         otp: otp,
 //       };
-//       if (USE_MOCK) {
-//         // Expected backend API (commented)
-//         Request: POST `${API}/${role}/signUp` (role in ['user','admin'])
-//         // Body:
-//         // {
-//         //   "userName": string,
-//         //   "firstName": string,
-//         //   "lastName": string,
-//         //   "email": string,
-//         //   "phone": string,
-//         //   "dob": "YYYY-MM-DD",
-//         //   "password": string,
-//         //   "otp": string
-//         // }
-//         // Response 201:
-//         // { "user": { "id": string, "username": string }, "message": string }
-//         // Response 400:
-//         // { "error": string }
-//         const data = {
-//           user: { id: 'u_456', username: userName },
-//           message: 'created',
-//         };
-//         console.log('Signup successful (mock):', data);
-//         alert(`Signup successful! Welcome ${data.user.username}`);
-//         router.replace("/(auth)/index");
-//       } else {
-//         const response = await fetch(`${API}/${role}/signUp`, {
-//           method: 'POST',
-//           headers: { 'Content-Type': 'application/json' },
-//           body: JSON.stringify(signupData)
-//         });
-//         if (!response.ok) {
-//           const errorData = await response.json();
-//           throw new Error(errorData.error || `Server error: ${response.status}`);
-//         }
-//         const data = await response.json();
-//         console.log('Signup successful:', data);
-//         alert(`Signup successful! Welcome ${data.user.username}`);
-//         router.replace("/(auth)/index");
+
+//       const response = await fetch(`${API}/${role}/signUp`, {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify(signupData)
+//       });
+//       if (!response.ok) {
+//         const errorData = await response.json();
+//         throw new Error(errorData.error || `Server error: ${response.status}`);
 //       }
+//       const data = await response.json();
+//       console.log('Signup successful:', data);
+//       alert(`Signup successful! Welcome ${data.user.username}`);
+//       router.replace("/(auth)/index");
 //     } catch (error) {
 //       console.error('Signup error:', error);
 //       alert(`Signup failed: ${error.message}`);
@@ -229,7 +171,6 @@
 //     }
 //   };
 
-//   // Check if Get OTP button should be disabled
 //   const isGetOtpDisabled = isOtpLoading || (otpSent && resendTimer > 0);
 
 //   return (
@@ -338,6 +279,7 @@
 //                     placeholder="Mobile number"
 //                     keyboardType="phone-pad"
 //                     returnKeyType="done"
+//                     maxLength={10} // newly added
 //                   />
 //                   <Pressable 
 //                     style={[
@@ -348,14 +290,13 @@
 //                     disabled={isGetOtpDisabled}
 //                   >
 //                     <Text style={styles.otpButtonText}>
-//                       {isOtpLoading ? "Sending..." : 
-//                        otpSent && resendTimer > 0 ? `${Math.floor(resendTimer / 60)}:${(resendTimer % 60).toString().padStart(2, '0')}` : 
-//                        "Get OTP"}
+//                     {isOtpLoading ? "Sending..." : 
+//                       otpSent && resendTimer > 0 ? `${Math.floor(resendTimer / 60)}:${(resendTimer % 60).toString().padStart(2, '0')}` : 
+//                       "Get OTP"}
 //                     </Text>
 //                   </Pressable>
 //                 </View>
 
-//                 {/* OTP input shown only after request */}
 //                 {otpSent && (
 //                   <View style={styles.otpSection}>
 //                     <TextInput
@@ -368,7 +309,6 @@
 //                       returnKeyType="done"
 //                     />
                     
-//                     {/* Resend button - only show when timer is 0 */}
 //                     {resendTimer === 0 && (
 //                       <Pressable 
 //                         style={[styles.resendButton, !canResend && styles.resendButtonDisabled]}
@@ -410,7 +350,7 @@
 //   scrollContainer: {
 //     flexGrow: 1,
 //     paddingHorizontal: 20,
-//     paddingBottom: 40, // Extra padding at bottom
+//     paddingBottom: 40,
 //   },
 //   container: {
 //     flex: 1,
@@ -453,13 +393,13 @@
 //   },
 //   inputRow: {
 //     flexDirection: "row",
-//     alignItems: "flex-start", // Changed from center to flex-start
+//     alignItems: "flex-start",
 //     marginBottom: 0,
 //   },
 //   mobileInput: {
 //     flex: 1,
 //     marginRight: 10,
-//     marginBottom: 0, // Remove bottom margin for mobile input
+//     marginBottom: 0,
 //   },
 //   inputStyle: {
 //     backgroundColor: "#f8f8f8",
@@ -553,8 +493,9 @@
 // });
 
 
+// with verfication otp
 
-// claude updated version removed mock part
+// Updated signup.jsx with OTP verification button
 
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Constants from 'expo-constants';
@@ -582,8 +523,10 @@ const Signup = () => {
   const [mobile, setMobile] = React.useState("");
   const [otp, setOtp] = React.useState("");
   const [otpSent, setOtpSent] = React.useState(false);
+  const [otpVerified, setOtpVerified] = React.useState(false);
   const [dateOfBirth, setDateOfBirth] = React.useState("");
   const [isOtpLoading, setIsOtpLoading] = React.useState(false);
+  const [isVerifying, setIsVerifying] = React.useState(false);
   const [otpError, setOtpError] = React.useState('');
   const [resendTimer, setResendTimer] = React.useState(0);
   const [canResend, setCanResend] = React.useState(false);
@@ -592,7 +535,7 @@ const Signup = () => {
 
   const insets = useSafeAreaInsets();
 
-  const API = Constants.expoConfig?.extra?.API_URL || 'https://streak-app-uxyv.onrender.com';
+  const API = Constants.expoConfig?.extra?.API_URL ;
 
   // Timer effect for resend functionality
   React.useEffect(() => {
@@ -619,12 +562,13 @@ const Signup = () => {
 
     setIsOtpLoading(true);
     setOtpError('');
+    setOtpVerified(false); // Reset verification status
 
     try {
       console.log('Sending OTP to mobile:', mobile);
       const response = await fetch(`${API}/user/sendOTP`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        // headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: mobile }),
       });
       const data = await response.json();
@@ -646,12 +590,47 @@ const Signup = () => {
     }
   };
 
+  const handleVerifyOtp = async () => {
+    if (!otp || otp.length !== 4) {
+      alert("Please enter a valid 4-digit OTP");
+      return;
+    }
+
+    setIsVerifying(true);
+    setOtpError('');
+
+    try {
+      console.log('Verifying OTP...');
+      const otpVerifyResponse = await fetch(`${API}/user/verifyOTP`, {
+        method: 'POST',
+        // headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: mobile, otp: otp }),
+      });
+      const otpVerifyData = await otpVerifyResponse.json();
+      
+      if (!otpVerifyResponse.ok) {
+        throw new Error(otpVerifyData.error || 'Invalid OTP');
+      }
+      
+      console.log('OTP verified successfully');
+      setOtpVerified(true);
+      alert("OTP verified successfully! You can now submit your registration.");
+    } catch (error) {
+      console.error('OTP verification error:', error);
+      setOtpError(error.message);
+      alert(`OTP verification failed: ${error.message}`);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
   const handleResendOtp = async () => {
     if (!canResend) return;
     
     setCanResend(false);
     setOtpError('');
     setOtp('');
+    setOtpVerified(false); // Reset verification when resending
     
     await handleGetOtp();
   };
@@ -667,23 +646,13 @@ const Signup = () => {
       return;
     }
     
-    if (!otp) {
-      alert("Please enter the OTP");
+    if (!otpVerified) {
+      alert("Please verify your OTP before submitting");
       return;
     }
 
     try {
-      console.log('Verifying OTP...');
-      const otpVerifyResponse = await fetch(`${API}/user/verifyOTP`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: mobile, otp: otp }),
-      });
-      const otpVerifyData = await otpVerifyResponse.json();
-      if (!otpVerifyResponse.ok) {
-        throw new Error(otpVerifyData.error || 'Invalid OTP');
-      }
-      console.log('OTP verified successfully, proceeding with signup...');
+      console.log('Proceeding with signup...');
 
       const signupData = {
         userName: userName,
@@ -698,17 +667,19 @@ const Signup = () => {
 
       const response = await fetch(`${API}/${role}/signUp`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        // headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(signupData)
       });
+      
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || `Server error: ${response.status}`);
       }
+      
       const data = await response.json();
       console.log('Signup successful:', data);
       alert(`Signup successful! Welcome ${data.user.username}`);
-      router.replace("/(auth)/index");
+      router.replace("/(auth)");
     } catch (error) {
       console.error('Signup error:', error);
       alert(`Signup failed: ${error.message}`);
@@ -835,24 +806,27 @@ const Signup = () => {
                     placeholder="Mobile number"
                     keyboardType="phone-pad"
                     returnKeyType="done"
+                    maxLength={10}
+                    editable={!otpVerified}
                   />
                   <Pressable 
                     style={[
                       styles.otpButton, 
-                      isGetOtpDisabled && styles.otpButtonDisabled
+                      (isGetOtpDisabled || otpVerified) && styles.otpButtonDisabled
                     ]} 
                     onPress={handleGetOtp}
-                    disabled={isGetOtpDisabled}
+                    disabled={isGetOtpDisabled || otpVerified}
                   >
                     <Text style={styles.otpButtonText}>
                       {isOtpLoading ? "Sending..." : 
-                       otpSent && resendTimer > 0 ? `${Math.floor(resendTimer / 60)}:${(resendTimer % 60).toString().padStart(2, '0')}` : 
-                       "Get OTP"}
+                      otpVerified ? "Verified" :
+                      otpSent && resendTimer > 0 ? `${Math.floor(resendTimer / 60)}:${(resendTimer % 60).toString().padStart(2, '0')}` : 
+                      "Get OTP"}
                     </Text>
                   </Pressable>
                 </View>
 
-                {otpSent && (
+                {otpSent && !otpVerified && (
                   <View style={styles.otpSection}>
                     <TextInput
                       style={styles.inputStyle}
@@ -863,6 +837,17 @@ const Signup = () => {
                       maxLength={6}
                       returnKeyType="done"
                     />
+                    
+                    {/* Verify OTP Button */}
+                    <Pressable
+                      style={[styles.verifyButton, isVerifying && styles.verifyButtonDisabled]}
+                      onPress={handleVerifyOtp}
+                      disabled={isVerifying || !otp || otp.length !== 4}
+                    >
+                      <Text style={styles.verifyButtonText}>
+                        {isVerifying ? "Verifying..." : "Verify OTP"}
+                      </Text>
+                    </Pressable>
                     
                     {resendTimer === 0 && (
                       <Pressable 
@@ -879,11 +864,25 @@ const Signup = () => {
                     ) : null}
                   </View>
                 )}
+
+                {/* OTP Verified Message */}
+                {otpVerified && (
+                  <View style={styles.verifiedContainer}>
+                    <Text style={styles.verifiedText}>✓ OTP Verified Successfully</Text>
+                  </View>
+                )}
               </View>
             </View>
 
             {/* Submit Button */}
-            <Pressable style={styles.submitButton} onPress={handleSubmit}>
+            <Pressable 
+              style={[
+                styles.submitButton,
+                !otpVerified && styles.submitButtonDisabled
+              ]} 
+              onPress={handleSubmit}
+              disabled={!otpVerified}
+            >
               <Text style={styles.submitText}>Submit</Text>
             </Pressable>
 
@@ -987,13 +986,29 @@ const styles = StyleSheet.create({
   otpSection: {
     marginTop: 15,
   },
+  verifyButton: {
+    backgroundColor: "#007AFF",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  verifyButtonDisabled: {
+    backgroundColor: "#a5a5a5",
+  },
+  verifyButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
   resendButton: {
     backgroundColor: '#007AFF',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 6,
     alignSelf: 'center',
-    marginTop: 10,
+    marginTop: 5,
   },
   resendButtonDisabled: {
     backgroundColor: '#a5a5a5',
@@ -1002,6 +1017,20 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
+  },
+  verifiedContainer: {
+    backgroundColor: '#d1fae5',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#10b981',
+  },
+  verifiedText: {
+    color: '#065f46',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   errorText: {
     color: "#ff4444",
@@ -1033,6 +1062,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 4,
+  },
+  submitButtonDisabled: {
+    backgroundColor: "#a5a5a5",
   },
   submitText: {
     color: "#fff",

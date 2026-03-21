@@ -4,7 +4,7 @@
     "slug": "PsuedoScreen",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/my_icon.png",
     "scheme": "psuedoscreen",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -18,7 +18,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/my_adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
@@ -34,7 +34,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/my_splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
@@ -50,7 +50,7 @@
       "eas": {
         "projectId": "b5c75dcf-4cf9-44d3-a1db-44fe72f4ae5f"
       },
-      "API_URL": "https://streak-app-production.up.railway.app"
+      "API_URL": "https://streak-app-production-870f.up.railway.app"
     }
   }
 }

@@ -61,7 +61,7 @@ export default userSupport;
 const styles = StyleSheet.create({
   safeContainer:{
     flex: 1,
-    backgroundColor: "green",
+    backgroundColor: "#f9fafb", // changed from green
   },
   screen: {
     flex: 1,

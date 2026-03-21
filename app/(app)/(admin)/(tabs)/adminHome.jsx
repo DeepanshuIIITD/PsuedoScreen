@@ -666,6 +666,7 @@ const AdminHome = () => {
           present: q.total_present,
           absent: q.total_absent,
           other: q.total_students - (q.total_present + q.total_absent),
+          
         });
         setWeekSummary({
           present: q.current_week_present ?? 0,
@@ -813,7 +814,8 @@ const AdminHome = () => {
       <View style={styles.headerContainer}>
         <Text style={[styles.title, { color: palette.text }]}>Hi, {user?.firstName || 'Admin'}!</Text>
         <TouchableOpacity onPress={() => setMenuVisible(!menuVisible)}>
-          <MaterialCommunityIcons name="account-circle" size={32} color="#2563eb" />
+          <MaterialCommunityIcons name="account-circle" size={32} color="#ff6b6b" />
+        {/* changed color of icon */} 
         </TouchableOpacity>
         {menuVisible && (
           <>

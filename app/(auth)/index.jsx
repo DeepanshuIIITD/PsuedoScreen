@@ -21,7 +21,6 @@ const app = () => {
   const [userName, setUserName] = React.useState('');
   const [password, setPassword] = React.useState('');
   const insets = useSafeAreaInsets();
-  // const API = 'https://streak-app-production.up.railway.app';
   const API = Constants.expoConfig.extra.API_URL;
 
   // new claude suggestions
@@ -99,6 +98,7 @@ const app = () => {
             onChangeText={text=> setUserName(text)}
             value={userName}
             placeholder='Username'
+            placeholderTextColor={'#687076'}
           />
         </View>
         <View>
@@ -107,6 +107,7 @@ const app = () => {
             value={password}
             placeholder='Password'
             secureTextEntry = {true}
+            placeholderTextColor={'#687076'}
           />
         </View>
 
@@ -120,7 +121,7 @@ const app = () => {
       </Link>
 
       <Link href = "/(auth)/forgotPassword">
-        <Text style = {styles.link}> Forgot Password ? Reset here</Text>
+        <Text style = {styles.forgotPasswordLink}> Forgot Password ? Reset here</Text>
       </Link>
       {/* <Text>Hello, {role}!</Text> */}
 
@@ -167,6 +168,14 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
     textDecorationColor: '#3838bcff',
     marginVertical: 5,
+  },
+  forgotPasswordLink:{
+    color: '#3838bcff',
+    textAlign: 'right',
+    textDecorationLine: 'underline',
+    textDecorationColor: '#3838bcff',
+    marginVertical: 5,
+    width: 250, 
   },
   selector:{
     // backgroundColor: '#51e6ebff',

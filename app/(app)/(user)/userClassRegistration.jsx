@@ -10,7 +10,6 @@ const userClassRegistration = () => {
 
   const [classCode, setClassCode] = React.useState('');
   const {apiCall} = useAuth();
-  // const API = 'https://streak-app-production.up.railway.app';
   const API = Constants.expoConfig.extra.API_URL;
   const redirectToClass = async (code) => {
       // router.push(`/(user)/userHome/${classId}`);
@@ -92,11 +91,11 @@ const styles = StyleSheet.create({
         flex:1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#f7c3c3ff',
+        backgroundColor: '#f9fafb',
     },
     classDetailsContainer: {
         width: '80%',
-        backgroundColor: '#f7c3c3ff',
+        backgroundColor: '#f9fafb',
         padding: 20,
         borderRadius: 10,
         shadowColor: '#000',

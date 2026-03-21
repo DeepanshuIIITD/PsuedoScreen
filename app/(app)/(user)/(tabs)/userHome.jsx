@@ -1326,7 +1326,7 @@ const UserHome = () => {
   const [currentWeekUnMarked, setCurrentWeekUnMarked] = useState(0);
   const [todayStatus, setTodayStatus] = useState("Not marked");
 
-  const API = Constants.expoConfig?.extra?.API_URL || 'https://streak-app-uxyv.onrender.com';
+  const API = Constants.expoConfig?.extra?.API_URL;
   const YEAR = new Date().getFullYear();
 
   console.log("USER HOME --- selected class is ", selectedClass);
@@ -1337,7 +1337,7 @@ const UserHome = () => {
     (calendarArray || []).forEach(({ date, status }) => {
       if (!date) return;
       const normalized = status === 'present' ? 'present' :
-                         status === 'absent' ? 'absent' : 'other';
+                        status === 'absent' ? 'absent' : 'other';
       mapped[date] = normalized;
     });
     return mapped;
@@ -1417,7 +1417,7 @@ const UserHome = () => {
     let message;
     if (status === 'present') message = "✅ Present";
     else if (status === 'absent') message = "❌ Absent";
-    else if (status === 'other') message = "ℹ️ Other (Genuine Reason)";
+    else if (status === 'other') message = "ℹ️ Not Marked";
     else message = "No data available";
 
     Alert.alert(`Date: ${key}`, message);

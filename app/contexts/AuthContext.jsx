@@ -32,15 +32,15 @@ export const AuthProvider = ({ children }) => {
 
   const loadStoredAuth = async () => {
     try {
-      const [storedToken, storedUserData] = await Promise.all([
+      const [storedAccessToken, storedRefreshToken, storedUserData] = await Promise.all([
         SecureStore.getItemAsync("access_token"),
-        SecureStore.getItemAsync("refresh_token"), // <-- newly added
+        SecureStore.getItemAsync("refresh_token"),
         SecureStore.getItemAsync("user"),
       ]);
 
-      if (storedToken && storedUserData) {
-        setAccessToken(storedToken);
-        setRefreshToken(storedRefreshToken || null); // <-- newly added
+      if (storedAccessToken && storedUserData) {
+        setAccessToken(storedAccessToken);
+        setRefreshToken(storedRefreshToken || null);
         setUser(JSON.parse(storedUserData));
       }
     } catch (error) {
