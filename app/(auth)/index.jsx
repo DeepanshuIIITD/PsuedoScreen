@@ -13,9 +13,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Constants from "expo-constants";
 import { AuthContext } from '../contexts/AuthContext';
 
-console.log("Index file mounting");
+// console.log("Index file mounting");
 const app = () => {
-  console.log("Index file rendering");
+  // console.log("Index file rendering");
   // state defining for user and admin login
   const [role, setRole] = React.useState('user'); // 'user', 'admin', or 'guest'
   const [userName, setUserName] = React.useState('');
@@ -63,6 +63,7 @@ const app = () => {
 
     const res = await login(role,userName, password);
     // console.log(res.role);
+    console.log("Login response:", res);
     if(res.success){
       console.log("Login Successfully");
     }

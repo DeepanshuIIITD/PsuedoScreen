@@ -43,43 +43,43 @@ const userPersonal = () => {
     const checkToday = async () => {
       if (!selectedClass) return;
       try {
-        console.log("🔍 Checking today's attendance...");
+        // console.log("🔍 Checking today's attendance...");
         
         const cal = await apiCall(`${API}/user/calendar/${selectedClass.id}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
         });
         
-        console.log("📅 Calendar response:", JSON.stringify(cal, null, 2));
+        // console.log("📅 Calendar response:", JSON.stringify(cal, null, 2));
         
         // Get today's date in local timezone
         const todayKey = getTodayKey();
-        console.log("📅 Today's key (local):", todayKey);
-        console.log("📅 Current time:", new Date().toString());
-        console.log("📅 Current IST time:", new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }));
+        // console.log("📅 Today's key (local):", todayKey);
+        // console.log("📅 Current time:", new Date().toString());
+        // console.log("📅 Current IST time:", new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }));
         
         // Log all dates in calendar
         if (cal?.calendar) {
-          console.log("📅 Dates in calendar:");
+          // console.log("📅 Dates in calendar:");
           cal.calendar.forEach(entry => {
-            console.log(`  - ${entry.date}: ${entry.status}`);
+            // console.log(`  - ${entry.date}: ${entry.status}`);
           });
         }
         
         const todayRec = (cal?.calendar || []).find((c) => c.date === todayKey);
         
         if (todayRec) {
-          console.log("✅ Found today's record:", todayRec);
+          // console.log("✅ Found today's record:", todayRec);
           setAttendanceSubmitted(true);
           setJoined(todayRec.status === 'present');
           const statusVal = todayRec.status === 'present' ? 'present' : todayRec.status === 'absent' ? 'absent' : 'other';
           setAttendanceData(prev => ({ ...prev, [todayKey]: statusVal }));
         } else {
-          console.log("⚠️ No record found for today");
+          // console.log("⚠️ No record found for today");
           setAttendanceSubmitted(false);
         }
       } catch (e) {
-        console.error("❌ Error checking today's attendance:", e);
+        // console.error("❌ Error checking today's attendance:", e);
       }
     };
     checkToday();

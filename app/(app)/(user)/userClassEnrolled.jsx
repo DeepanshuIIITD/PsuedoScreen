@@ -22,6 +22,7 @@
 //     const colorScheme = useColorScheme();
 
 //     const fetchClasses = async () => {
+//         console.log("fetchClasses called");
 //         try {
 
 //             const data = await apiCall(`${API_URL}/user/classList`,{
@@ -30,7 +31,7 @@
 //         });
 
             
-//             // console.log('API response data:', data);
+//             console.log('API response data:', data);
 
 //             // Handle different response structures
 //             let classesData = [];
@@ -70,6 +71,7 @@
 //             console.error('Error fetching classes:', err);
 //             setError(err.message);
 //         } finally {
+//             console.log("fetchClasses finished, setting loading to false");
 //             setLoading(false);
 //             setRefreshing(false);
 //         }
@@ -87,10 +89,14 @@
     
 
 //     useEffect(() => {
-//         // console.log("User info from user Class Enrolled ",user);
+//         console.log("UserClassEnrolled useEffect triggered");
+//         console.log("User:", user);
+//         console.log("Access Token exists:", !!access_token);
+//         console.log("API_URL:", API_URL);
 //         if (user && access_token) {
 //             fetchClasses();
 //         } else {
+//             console.log("Not fetching classes: user or token missing");
 //             setLoading(false);
 //             setError("Please login to view classes");
 //         }
@@ -318,22 +324,16 @@ const UserClassEnrolled = () => {
 
     const fetchClasses = async () => {
         try {
-            console.log("🔍 Fetching classes...");
-            console.log("👤 User:", user?.userName || user?.firstName);
-            console.log("🔑 Access token exists:", !!access_token);
-            console.log("📍 API URL:", `${API_URL}/user/classList`);
+            // console.log("🔍 Fetching classes...");
+            // console.log("👤 User:", user?.userName || user?.firstName);
+            // console.log("🔑 Access token exists:", !!access_token);
+            // console.log("📍 API URL:", `${API_URL}/user/classList`);
             
             const data = await apiCall(`${API_URL}/user/classList`, {
                 method: 'GET',
-                // headers: {
-                //     "Content-Type": "application/json"
-                // },
             });
 
-            console.log("✅ Classes fetched successfully");
-            console.log("📦 Raw API response:", JSON.stringify(data, null, 2));
-            
-            // Handle different response structures
+
             let classesData = [];
             
             if (Array.isArray(data)) {
@@ -345,11 +345,11 @@ const UserClassEnrolled = () => {
             } else if (data.courses && Array.isArray(data.courses)) {
                 classesData = data.courses;
             } else {
-                console.log("⚠️ Unexpected data structure:", data);
+                // console.log("⚠️ Unexpected data structure:", data);
                 classesData = [];
             }
             
-            console.log(`📚 Found ${classesData.length} classes`);
+            // console.log(`📚 Found ${classesData.length} classes`);
             
             // Transform the API response to match your expected format
             const transformedClasses = classesData.map(classItem => ({
@@ -363,14 +363,14 @@ const UserClassEnrolled = () => {
                 created_by_admin_id: classItem.created_by_admin_id
             }));
             
-            console.log("✅ Classes transformed:", transformedClasses);
+            // console.log("✅ Classes transformed:", transformedClasses);
             setClasses(transformedClasses);
             setError(null);
             
         } catch (err) {
-            console.error('❌ Error fetching classes:', err);
-            console.error('❌ Error message:', err.message);
-            console.error('❌ Error stack:', err.stack);
+            // console.error('❌ Error fetching classes:', err);
+            // console.error('❌ Error message:', err.message);
+            // console.error('❌ Error stack:', err.stack);
             setError(err.message);
         } finally {
             setLoading(false);
@@ -379,17 +379,17 @@ const UserClassEnrolled = () => {
     };
 
     useEffect(() => {
-        console.log("🔄 UserClassEnrolled mounted");
-        console.log("👤 User from context:", user);
-        console.log("🔑 Access token exists:", !!access_token);
+        // console.log("🔄 UserClassEnrolled mounted");
+        // console.log("👤 User from context:", user);
+        // console.log("🔑 Access token exists:", !!access_token);
         
         if (user && access_token) {
-            console.log("✅ User and token found, fetching classes...");
+            // console.log("✅ User and token found, fetching classes...");
             fetchClasses();
         } else {
-            console.log("⚠️ Missing user or token");
-            console.log("  - User exists:", !!user);
-            console.log("  - Token exists:", !!access_token);
+            // console.log("⚠️ Missing user or token");
+            // console.log("  - User exists:", !!user);
+            // console.log("  - Token exists:", !!access_token);
             setLoading(false);
             setError("Please login to view classes");
         }

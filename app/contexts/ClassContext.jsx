@@ -1,11 +1,11 @@
 // app/contexts/ClassContext.jsx
 import { createContext, useContext, useMemo, useState } from "react";
 
-console.log("Class Context file mounted");
+// console.log("Class Context file mounted");
 const ClassContext = createContext();
 
 export const useClass = () => {
-    console.log("Class Context file gona render");
+    // console.log("Class Context file gona render");
     const context = useContext(ClassContext);
     if (!context) {
         throw new Error("useClass must be used within ClassProvider");
@@ -20,7 +20,7 @@ export const ClassProvider = ({ children }) => {
 
     const selectClass = (classData) => {
         // console.log("Setting selected class:", classData);
-        console.log("Selected class data // commented out");
+        // console.log("Selected class data // commented out");
         setSelectedClass({
             id: classData.ID || classData.id,
             name: classData.Name || classData.name || classData.title,
@@ -38,7 +38,7 @@ export const ClassProvider = ({ children }) => {
 
     // NEW: Function to trigger refresh in components watching refreshTrigger
     const triggerRefresh = () => {
-        console.log("Triggering refresh in userHome");
+        // console.log("Triggering refresh in userHome");
         setRefreshTrigger(prev => prev + 1);
     };
 

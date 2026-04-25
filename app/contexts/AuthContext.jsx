@@ -4,7 +4,7 @@ import * as SecureStore from "expo-secure-store";
 import { createContext, useContext, useEffect, useState } from "react";
 
 export const AuthContext = createContext();
-console.log("🟢 AUTH CONTEXT - Loading");
+// console.log("🟢 AUTH CONTEXT - Loading");
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -15,7 +15,7 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  console.log("🟢 AUTH PROVIDER - Mounting");
+  // console.log("🟢 AUTH PROVIDER - Mounting");
   const [access_token, setAccessToken] = useState(null);
   const [user, setUser] = useState(null);
   const [refresh_token, setRefreshToken] = useState(null); // newly added
@@ -58,10 +58,12 @@ export const AuthProvider = ({ children }) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userName: username, password }),
-        credentials: "include",
+        credentials: "include",  // <<=== UNCOMMENT THIS
       });
+      console.log("Login response received from server:", response);
 
       const data = await response.json();
+      console.log("Login parsed payload:", data);  // <<=== ADD THIS
       if (!response.ok) throw new Error(data.error || "Login failed");
 
       const userWithRole = { ...data.user, role };
@@ -130,17 +132,20 @@ export const AuthProvider = ({ children }) => {
   // ✅ Unified API call wrapper (replaces apiHelper)
   const apiCall = async (url, options = {}) => {
     console.log("🔍 API Call to:", url);
-    // console.log("Access token is ", access_token);
+    console.log("Access token is ", access_token);
+
+    const headers = {
+      "Content-Type": "application/json",
+      ...options.headers,
+      ...(access_token ? { Authorization: `Bearer ${access_token}` } : {}),  // Remove Bearer, use cookies
+    };
+    console.log("Request headers:", headers);
 
     try {
       // First attempt
       let response = await fetch(url, {
         ...options,
-        headers: {
-          "Content-Type": "application/json",
-          ...options.headers,
-          Authorization: `Bearer ${access_token}`,
-        },
+        headers,
         credentials: "include",
       });
 
@@ -150,12 +155,13 @@ export const AuthProvider = ({ children }) => {
 
         try {
           const newToken = await attemptTokenRefresh();
+          console.log("Retrying original API call with new token...", newToken);
           response = await fetch(url, {
             ...options,
             headers: {
               "Content-Type": "application/json",
               ...options.headers,
-              Authorization: `Bearer ${newToken}`,
+              ...(newToken ? { Authorization: `Bearer ${newToken}` } : {}),  // Remove Bearer, use cookies
             },
             credentials: "include",
           });
@@ -171,8 +177,9 @@ export const AuthProvider = ({ children }) => {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || `API Error: ${response.message}`);
       }
-
-      return await response.json();
+      const responseData = await response.json();
+      console.log("API call successful, response data:", responseData);
+      return responseData;
     } catch (error) {
       console.error("API call failed:", error);
       throw error;

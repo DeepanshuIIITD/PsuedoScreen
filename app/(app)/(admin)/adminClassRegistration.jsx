@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import React from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
-console.log("🔴 ADMIN CLASS REGISTRATION - Mounting");
+// console.log("🔴 ADMIN CLASS REGISTRATION - Mounting");
 const AdminClassRegistration = () => {
 
   const [title, setTitle] = React.useState('');
@@ -14,7 +14,7 @@ const AdminClassRegistration = () => {
   const { apiCall } = useAuth();
   // const API = 'https://streak-app-production.up.railway.app';
   const API = Constants.expoConfig.extra.API_URL;
-  console.log("🔴 ADMIN CLASS REGISTRATION - Rendering");
+  // console.log("🔴 ADMIN CLASS REGISTRATION - Rendering");
 
 
   const USE_MOCK = false; // Toggle mocked createClass API
@@ -26,7 +26,7 @@ const AdminClassRegistration = () => {
   }
 
   try {
-    console.log("Creating Class...");
+    // console.log("Creating Class...");
     // if (USE_MOCK) {
     //   // Expected backend API (commented)
     //   // POST `${API}/admin/createClass`
@@ -57,7 +57,7 @@ const AdminClassRegistration = () => {
       body: JSON.stringify({ name: title, phone, email }),
     });
 
-      console.log("Class Created Successfully:", createClassData);
+      // console.log("Class Created Successfully:", createClassData);
       // Show success message with class details
       Alert.alert(
         "✅ Class Created Successfully!",

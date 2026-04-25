@@ -63,12 +63,12 @@ import { Redirect, Stack } from 'expo-router';
 import { useAuth } from '../../contexts/AuthContext';
 
 
-console.log("🟠 ADMIN LAYOUT - Mounting");
+// console.log("🟠 ADMIN LAYOUT - Mounting");
 export default function AdminLayout() {
-    console.log("🟠 ADMIN LAYOUT - Rendering");
+    // console.log("🟠 ADMIN LAYOUT - Rendering");
 
     const { user } = useAuth();
-    console.log("🟠 ADMIN LAYOUT - User:", user?.role);
+    // console.log("🟠 ADMIN LAYOUT - User:", user?.role);
     // Protect admin routes
     if (user?.role !== 'admin') {
         return <Redirect href="/(auth)" />;

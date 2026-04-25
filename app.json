@@ -50,7 +50,7 @@
       "eas": {
         "projectId": "b5c75dcf-4cf9-44d3-a1db-44fe72f4ae5f"
       },
-      "API_URL": "https://streak-app-production-870f.up.railway.app"
+      "API_URL": "https://streak-app-production.up.railway.app"
     }
   }
 }

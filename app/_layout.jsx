@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { Appearance, Image, Text, View } from 'react-native';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
-console.log("🔵 1. ROOT LAYOUT - Mounting");
+// console.log("🔵 1. ROOT LAYOUT - Mounting");
 function LoadingScreen() {
   return <Text>Loading...</Text>;
 }
@@ -29,7 +29,7 @@ function Splash() {
 }
 
 function RootLayoutNav() {
-  console.log("🔵 2. ROOT LAYOUT - Rendering");
+  // console.log("🔵 2. ROOT LAYOUT - Rendering");
   const { user, isLoading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
@@ -45,7 +45,7 @@ function RootLayoutNav() {
     const inAppGroup = segments[0] === '(app)';
 
   // checking  
-  console.log("Root Layout file se");
+  // console.log("Root Layout file se");
 
 
     if (!user && !inAuthGroup) {

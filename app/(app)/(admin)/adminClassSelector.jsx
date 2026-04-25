@@ -12,10 +12,10 @@ import {
 } from "react-native";
 import { useClass } from "../../contexts/ClassContext";
 
-console.log("🔴 ADMIN CLASS SELECTOR - Mounting");
+// console.log("🔴 ADMIN CLASS SELECTOR - Mounting");
 
 const AdminClassSelector = () => {
-  console.log("🔴 ADMIN CLASS SELECTOR - Rendering");
+  // console.log("🔴 ADMIN CLASS SELECTOR - Rendering");
   const { apiCall,user,access_token } = useAuth();
   const { selectClass } = useClass();
   
@@ -26,7 +26,7 @@ const AdminClassSelector = () => {
 
   // Fetch classes on component mount
   useEffect(() => {
-    console.log("🔴 ADMIN CLASS SELECTOR - useEffect ran");
+    // console.log("🔴 ADMIN CLASS SELECTOR - useEffect ran");
     fetchClasses();
   }, []);
 
@@ -38,7 +38,7 @@ const AdminClassSelector = () => {
           method: "GET",
           headers: { "Content-Type": "application/json" },
         });
-        console.log("Class Details response:", response);
+        // console.log("Class Details response:", response);
         if (response && response.classList) {
           setClasses(response.classList);
         } else if (Array.isArray(response)) {
@@ -67,8 +67,8 @@ const AdminClassSelector = () => {
     //   }
     // });
     selectClass(classItem);
-    console.log("From Class Selector You pressed this button ");
-    console.log("Class details ", classItem);
+    // console.log("From Class Selector You pressed this button ");
+    // console.log("Class details ", classItem);
     router.push("/(admin)/(tabs)/adminHome");
   };
 

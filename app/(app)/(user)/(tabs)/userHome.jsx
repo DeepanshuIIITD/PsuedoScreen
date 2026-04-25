@@ -1329,7 +1329,7 @@ const UserHome = () => {
   const API = Constants.expoConfig?.extra?.API_URL;
   const YEAR = new Date().getFullYear();
 
-  console.log("USER HOME --- selected class is ", selectedClass);
+  // console.log("USER HOME --- selected class is ", selectedClass);
 
   // Convert backend calendar array into map { "YYYY-MM-DD": "present" | "absent" | "other" }
   const mapCalendarToAttendance = (calendarArray=[]) => {

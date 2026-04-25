@@ -579,6 +579,7 @@ const Signup = () => {
         setResendTimer(120);
         setCanResend(false);
       } else {
+        console.error('OTP sending failed:', data);
         throw new Error(data.error || 'Failed to send OTP');
       }
     } catch (error) {
