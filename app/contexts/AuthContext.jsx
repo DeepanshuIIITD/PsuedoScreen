@@ -86,6 +86,7 @@ export const AuthProvider = ({ children }) => {
     try {
         const logoutUrl = user?.role === "admin" ? "/admin/logOutAdmin/" : "/user/logOutUser";
         await fetch(`${API}${logoutUrl}`, { method: "POST", credentials: "include" });
+        console.log("Logout API call successful to:", logoutUrl);
     }
     catch (error) {
       console.error("Logout API call failed:", error);
@@ -132,14 +133,14 @@ export const AuthProvider = ({ children }) => {
   // ✅ Unified API call wrapper (replaces apiHelper)
   const apiCall = async (url, options = {}) => {
     console.log("🔍 API Call to:", url);
-    console.log("Access token is ", access_token);
+    // console.log("Access token is ", access_token);
 
     const headers = {
       "Content-Type": "application/json",
       ...options.headers,
       ...(access_token ? { Authorization: `Bearer ${access_token}` } : {}),  // Remove Bearer, use cookies
     };
-    console.log("Request headers:", headers);
+    // console.log("Request headers:", headers);
 
     try {
       // First attempt
@@ -178,7 +179,7 @@ export const AuthProvider = ({ children }) => {
         throw new Error(errorData.error || `API Error: ${response.message}`);
       }
       const responseData = await response.json();
-      console.log("API call successful, response data:", responseData);
+      // console.log("API call successful, response data:", responseData);
       return responseData;
     } catch (error) {
       console.error("API call failed:", error);
