@@ -27,6 +27,7 @@ export const ClassProvider = ({ children }) => {
             code: classData.ClassCode || classData.class_code || classData.code,
             email: classData.Email || classData.email,
             phone: classData.Phone || classData.phone,
+            numberOfWorkingDaysInWeek: classData.NumberOfWorkingDaysInWeek || classData.number_of_working_days_in_week,
         });
         setAttendanceData({}); // reset when class changes
     };

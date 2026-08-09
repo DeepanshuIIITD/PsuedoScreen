@@ -57,7 +57,8 @@ const UserClassEnrolled = () => {
                 email: classItem.email,
                 created_at: classItem.created_at,
                 joined_at: classItem.joined_at,
-                created_by_admin_id: classItem.created_by_admin_id
+                created_by_admin_id: classItem.created_by_admin_id,
+                numberOfWorkingDaysInWeek: classItem.number_of_working_days_in_week || classItem.NumberOfWorkingDaysInWeek,  // newly created here 
             }));
             
             // console.log("✅ Classes transformed:", transformedClasses);

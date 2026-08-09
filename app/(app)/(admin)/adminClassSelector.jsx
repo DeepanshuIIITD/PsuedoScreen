@@ -317,6 +317,7 @@ const AdminClassSelector = () => {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });
+      console.log("Class Details response:", response);
       if (response && response.classList) {
         setClasses(response.classList);
       } else if (Array.isArray(response)) {
@@ -389,6 +390,7 @@ const AdminClassSelector = () => {
               <View style={styles.classDetails}>
                 <Text style={styles.classDetailText}>📧 {item.Email || item.email || '—'}</Text>
                 <Text style={styles.classDetailText}>📱 {item.Phone || item.phone || '—'}</Text>
+                <Text style={styles.classDetailText}>🗓️ {item.numberOfWorkingDaysInWeek ? `${item.numberOfWorkingDaysInWeek} days/week` : '—'}</Text>
               </View>
               <Text style={styles.classDate}>
                 Created: {new Date(item.CreatedAt || item.createdAt || item.UpdatedAt || item.updatedAt || Date.now()).toLocaleDateString()}

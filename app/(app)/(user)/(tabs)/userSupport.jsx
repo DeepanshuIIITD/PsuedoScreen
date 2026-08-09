@@ -37,11 +37,11 @@ const userSupport = () => {
           <Text style={styles.cardTitle}>Contribute via UPI</Text>
           <Image
             style={styles.image}
-            source={require("@/assets/images/LinkedIn_Qr.png")}
+            source={require("@/assets/images/paytm_scanner.png")}
           />
           <TouchableOpacity style={styles.upiBox} onPress={handleUPIClick}>
             <MaterialCommunityIcons name="qrcode-scan" size={20} color="#111827" />
-            <Text style={styles.upiText}>8888888888@paytm</Text>
+            <Text style={styles.upiText}>9625025503@paytm</Text>
           </TouchableOpacity>
         </View>
 
